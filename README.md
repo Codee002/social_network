@@ -1,14 +1,14 @@
 # Niên luận Cơ sở/Chuyên ngành
 
-**Học kỳ**: X, **Năm học**: 20XX-20XX
+**Học kỳ**: 3, **Năm học**: 2025-2026
 
-**Mã học phần**: X
+**Mã học phần**: CT466
 
-**MSSV**: X
+**MSSV**: B2205955
 
-**Họ tên**: X
+**Họ tên**: Trần Thanh Phúc
 
-**Tên đề tài**: X
+**Tên đề tài**: Xây dựng hệ thống mạng xã hội
 
 ---
 
