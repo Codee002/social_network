@@ -1,4 +1,46 @@
-import { createApp } from 'vue'
-import App from './App.vue'
+import { createApp } from "vue";
+import App from "./App.vue";
 
-createApp(App).mount('#app')
+// Pusher Laravel
+import Echo from "laravel-echo";
+import Pusher from "pusher-js";
+
+window.Pusher = Pusher;
+
+window.Echo = new Echo({
+  broadcaster: "pusher",
+  key: process.env.VUE_APP_PUSHER_APP_KEY,
+  cluster: "ap1",
+  forceTLS: true,
+});
+
+// Ant Design Vue
+import Antd  from "ant-design-vue";
+import "ant-design-vue/dist/reset.css";
+
+// Vue Toastification
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
+const options = {
+  transition: "Vue-Toastification__bounce",
+  maxToasts: 20,
+  newestOnTop: true
+};
+
+
+// Axios
+import axios from "axios";
+window.axios = axios
+axios.defaults.withCredentials = true;
+
+// Router
+import router from "./router/index";
+
+// CSS
+import "./assets/styles/global.css";
+
+const app = createApp(App);
+app.use(Toast, options);
+app.use(router);
+app.use(Antd);
+app.mount("#app");
