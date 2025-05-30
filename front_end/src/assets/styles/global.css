@@ -1,0 +1,48 @@
+:root {
+  --main1-color: #ffddba;
+  --main2-color: #1dbfaf;
+  --extra1-color: rgb(180 140 114);
+  --extra2-color: #0499a8;
+  --hover-background-color: #ffddba33;
+  --hover-border-color: #f2c495;
+  --header-heigh: 3.5rem;
+  --dark: #212121;
+  --light: #f3f3f3;
+}
+
+[data-bs-theme="light"]:root {
+  --main-bg: rgb(240, 242, 245);
+  --main-extra-bg: rgb(255, 255, 255);
+  --extra-bg: rgb(228, 230, 235);
+  --font-color: rgb(5, 5, 5);
+  --font-extra-color: rgb(101, 103, 107);
+  --brightness: brightness(0.8);
+  --hover-color: rgb(209 209 209 / 28%);
+  --border-color: #ced4da;
+}
+
+[data-bs-theme="dark"]:root {
+  --main-bg: rgb(24, 25, 26);
+  --main-extra-bg: rgb(36, 37, 38);
+  --extra-bg: rgb(58, 59, 60);
+  --font-color: rgb(228, 230, 235);
+  --font-extra-color: rgb(176, 179, 184);
+  --brightness: brightness(1.2);
+  --hover-color: rgba(136, 136, 136, 0.269);
+  --border-color: #555555;
+}
+
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-style: normal;
+  font-size: 1rem;
+  width: 100%;
+  height: 100vh;
+  background-color: var(--extra-bg);
+  color: var(--font-color);
+}
