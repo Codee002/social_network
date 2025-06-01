@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -48,8 +47,34 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
+    }
+
+    // ------------- Relation ------------
+    public function sendRelations()
+    {
+        return $this->hasMany(Relation::class, 'sender_id', 'id');
+    }
+
+    public function receivedRelations()
+    {
+        return $this->hasMany(Relation::class, 'received_id', 'id');
+    }
+
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
+
+    public function conversations()
+    {
+        return $this->belongsToMany(Conversation::class)->withPivot('role', 'joined_at', 'has_created');
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
     }
 
     // ------------- My func ------------
