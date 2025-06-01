@@ -43,7 +43,7 @@ function changeTypePassword(event) {
 }
 
 .form-control:focus {
-  box-shadow: 0 0 0 0.05rem var(--hover-border-color) !important;
+  box-shadow: 0 0 0 0.05rem var(--main1-color) !important;
   background-color: var(--main-extra-bg) !important;
   color: var(--font-color) !important;
 }
@@ -85,7 +85,7 @@ function changeTypePassword(event) {
   cursor: pointer;
 }
 
-.mg-btn {
+.form-wrapper .mg-btn {
   display: block;
   width: 100%;
   background-color: var(--main1-color) !important;
@@ -93,33 +93,33 @@ function changeTypePassword(event) {
   box-shadow: 0 0 0 0.05rem var(--main1color) !important;
   border-radius: 0.6rem !important;
   margin: 1.2rem 0;
-  color: #000;
+  color: var(--font-color);
   font-weight: 650;
   transition: 0.2s;
   height: 3rem;
 }
 
-.mg-btn:focus {
+.form-wrapper .mg-btn:focus {
   box-shadow: 0 0 0 0.25rem rgba(213, 214, 215, 0) !important;
-  color: #000;
+  color: var(--font-color);
 }
 
-.mg-btn:hover {
+.form-wrapper .mg-btn:hover {
   transform: scale(1.02);
-  color: #000;
+  color: var(--font-color);
   font-weight: 650;
 }
 
-.form-check-input {
+.form-wrapper .form-check-input {
   background-color: var(--font-input-color) !important;
 }
 
-.form-check-input:checked {
+.form-wrapper .form-check-input:checked {
   background-color: var(--main-color) !important;
   border-color: var(--main-color) !important;
 }
 
-.footer-form {
+.form-wrapper .footer-form {
   position: absolute;
   bottom: -5rem;
   left: 50%;
@@ -127,42 +127,42 @@ function changeTypePassword(event) {
   font-size: 1rem;
 }
 
-.footer-form a {
+.form-wrapper .footer-form a {
   text-decoration: none;
   color: var(--font-color);
 }
 
-a:hover {
+.form-wrapper a:hover {
   color: var(--main1-color) !important;
 }
 
-i.back {
+.form-wrapper i.back {
   position: absolute;
   top: 1.5rem;
   left: 2rem;
   font-size: 1.2rem;
 }
 
-i.back:hover {
+.form-wrapper i.back:hover {
   cursor: pointer;
 }
 
-a {
+.form-wrapper a {
   text-decoration: none;
   color: var(--main1-color);
 }
 
-.form-check-input {
+.form-wrapper .form-check-input {
   background-color: var(--font-input-color) !important;
 }
 
-.form-check-input:checked {
+.form-wrapper .form-check-input:checked {
   background-color: var(--main1-color) !important;
   border-color: var(--main1-color) !important;
   color: #000 !important;
 }
 
-.form-check-input:checked[type="checkbox"] {
+.form-wrapper .form-check-input:checked[type="checkbox"] {
   --bs-form-check-bg-image: unset !important
     ;
 }
