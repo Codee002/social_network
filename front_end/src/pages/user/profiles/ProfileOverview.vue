@@ -2,7 +2,7 @@
   <div class="profile__overview">
     <div class="profile__avt">
       <img :src="srcAvtUser" alt="" />
-      <button data-bs-toggle="modal" data-bs-target="#modal__upload--avt">
+      <button data-bs-toggle="modal" data-bs-target="#modal__upload--avt" v-if="relationStatus == 'owner'">
         <i class="fa-solid fa-camera"></i>
       </button>
       <div
@@ -11,86 +11,112 @@
         tabindex="-1"
         aria-labelledby="modal-label"
         aria-hidden="true"
+        v-if="relationStatus == 'owner'"
       >
         <div class="modal-dialog modal-dialog-centered">
-          <form
-            class="modal-content"
-            action="/profile/avatar"
-            method="post"
-            enctype="multipart/form-data"
-          >
+          <form class="modal-content" action="/profile/avatar" method="post" enctype="multipart/form-data">
             <div class="modal-header">
               <h5 class="modal-title" id="modal-label">Ảnh đại diện</h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-              ></button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
               <div class="upload__preview--avt">
                 <img class="rounded-circle" :src="srcAvtUser" alt="" />
-                <input
-                  class="upload__avt form-control"
-                  type="file"
-                  name="avatar"
-                  accept="image/*"
-                />
+                <input class="upload__avt form-control" type="file" name="avatar" accept="image/*" />
               </div>
             </div>
             <div class="modal-footer">
-              <button
-                type="button"
-                class="upload__btn btn upload__btn--secondary upload__reset"
-              >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                class="upload__btn btn upload__btn--primary upload__save hide"
-              >
-                Cập nhật
-              </button>
+              <button type="button" class="upload__btn btn upload__btn--secondary upload__reset">Hủy</button>
+              <button type="submit" class="upload__btn btn upload__btn--primary upload__save hide">Cập nhật</button>
             </div>
           </form>
         </div>
       </div>
     </div>
     <div class="profile__info">
-      <h1 class="profile__name">Trần Thanh Phúc</h1>
+      <h1 class="profile__name">{{ user.profile.name }}</h1>
       <div class="profile__preview">
-        <div class="profile__count profile__count--friend" href="#">
-          2 người bạn
-        </div>
+        <div class="profile__count profile__count--friend" href="#">2 người bạn</div>
         <a class="profile__list profile__list--friend">
           <div class="icon-box"><i class="bi bi-three-dots"></i></div>
-          <img
-            class="profile__node profile__node--friend"
-            :src="srcAvtUser"
-            alt=""
-          />
-          <img
-            class="profile__node profile__node--friend"
-            :src="srcAvtUser"
-            alt=""
-          />
+          <img class="profile__node profile__node--friend" :src="srcAvtUser" alt="" />
+          <img class="profile__node profile__node--friend" :src="srcAvtUser" alt="" />
         </a>
       </div>
     </div>
     <div class="profile__action">
+      <!-- Chủ tài khoản -->
       <button
         class="profile__btn profile__btn--primary btn"
         data-bs-toggle="modal"
         data-bs-target="#modal__upload--story"
+        v-if="relationStatus == 'owner'"
       >
         <i class="fa-solid fa-plus"></i>
         Thêm vào tin
       </button>
-      <button class="profile__btn profile__btn--secondary btn">
+      <button class="profile__btn profile__btn--secondary btn" v-if="relationStatus == 'owner'">
         <i class="fa-solid fa-pen"></i>
         Chỉnh sửa trang cá nhân
       </button>
 
+      <!-- Bạn bè -->
+      <button class="profile__btn profile__btn--secondary btn" v-if="relationStatus == 'friend'">
+        <i class="fa-solid fa-user-group"></i>
+        Bạn bè
+      </button>
+
+      <button class="profile__btn profile__btn--primary btn" v-if="relationStatus == 'friend'">
+        <i class="fa-solid fa-message"></i>
+        Nhắn tin
+      </button>
+
+      <!-- Người lạ -->
+      <button
+        class="profile__btn profile__btn--primary btn"
+        v-if="relationStatus == 'stranger'"
+        @click="addRelation('friend', 'pending')"
+      >
+        <i class="fa-solid fa-user-group"></i>
+        Thêm bạn bè
+      </button>
+
+      <!-- Phản hồi -->
+      <button
+        class="profile__btn profile__btn--secondary btn"
+        v-if="action == 'received' && relationStatus == 'friend_pending'"
+        @click="changeRelation(relation.id, 'friend', 'reject')"
+      >
+        <i class="fa-solid fa-xmark"></i>
+        Từ chối
+      </button>
+
+      <button
+        class="profile__btn profile__btn--primary btn"
+        v-if="action == 'received' && relationStatus == 'friend_pending'"
+        @click="changeRelation(relation.id, 'friend', 'completed')"
+      >
+        <i class="fa-solid fa-check"></i>
+        Chấp nhận
+      </button>
+
+      <!-- Đợi phản hồi -->
+      <button
+        class="profile__btn profile__btn--secondary btn"
+        v-if="action == 'sender' && relationStatus == 'friend_pending'"
+        @click="changeRelation(relation.id, 'friend', 'reject')"
+      >
+        <i class="fa-solid fa-xmark"></i>
+        Hủy lời mời
+      </button>
+
+      <button
+        class="profile__btn profile__btn--primary btn"
+        v-if="action == 'sender' && relationStatus == 'friend_pending'"
+      >
+        <i class="fa-solid fa-check"></i>
+        Đã gửi lời mời
+      </button>
       <!-- Modal -->
       <div
         class="modal modal__upload modal__upload--story"
@@ -100,48 +126,20 @@
         aria-hidden="true"
       >
         <div class="modal-dialog modal-dialog-centered">
-          <form
-            class="modal-content"
-            action="/story/add"
-            method="post"
-            enctype="multipart/form-data"
-          >
+          <form class="modal-content" action="/story/add" method="post" enctype="multipart/form-data">
             <div class="modal-header">
               <h5 class="modal-title" id="modal-label">Tạo tin</h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-              ></button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
               <div class="upload__preview--story">
-                <img
-                  class="rounded"
-                  src="http://instories.localhost/images/cover/default.png"
-                  alt=""
-                />
-                <input
-                  class="upload__story form-control"
-                  type="file"
-                  name="story"
-                  accept="image/*"
-                />
+                <img class="rounded" alt="" />
+                <input class="upload__story form-control" type="file" name="story" accept="image/*" />
               </div>
             </div>
             <div class="modal-footer">
-              <button
-                type="button"
-                class="upload__btn btn upload__btn--secondary upload__reset"
-              >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                class="upload__btn btn upload__btn--primary upload__save hide"
-              >
-                Cập nhật
-              </button>
+              <button type="button" class="upload__btn btn upload__btn--secondary upload__reset">Hủy</button>
+              <button type="submit" class="upload__btn btn upload__btn--primary upload__save hide">Cập nhật</button>
             </div>
           </form>
         </div>
@@ -151,14 +149,39 @@
 </template>
 
 <script setup>
-import { defineProps } from "vue";
+import { computed, defineProps, defineEmits } from 'vue'
 
-defineProps({
-  srcAvtUser: {
-    type: String,
-    require: true,
+const props = defineProps({
+  user: {
+    type: Object,
+    default: null,
   },
-});
+  relationStatus: {
+    type: String,
+  },
+  relation: {},
+
+  action: {
+    default: 'owner',
+  },
+})
+
+const srcAvtUser = computed(() => {
+  if (!props.user.profile.avatar) {
+    return require('@/assets/images/avatar/default.jpg')
+  }
+  return props.user.profile.avatar
+})
+
+const emit = defineEmits(['addRelation', 'changeRelation'])
+
+function addRelation(type, status) {
+  emit('addRelation', type, status)
+}
+
+function changeRelation(relationId, type, status) {
+  emit('changeRelation', relationId, type, status)
+}
 </script>
 
 <style scoped>
