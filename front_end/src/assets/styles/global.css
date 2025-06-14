@@ -1,9 +1,10 @@
 :root {
-  --main1-color: #ffddba;
-  --main2-color: #1dbfaf;
-  --extra1-color: rgb(180 140 114);
-  --extra2-color: #0499a8;
+  --main1-color: #1dbfaf;
+  --main2-color: #ffddba;
+  --extra1-color: #0499a8;
+  --extra2-color: rgb(180 140 114);
   --hover-background-color: #ffddba33;
+  /* --hover-border-color: #f2c495; */
   --hover-border-color: #f2c495;
   --header-heigh: 3.5rem;
   --dark: #212121;
@@ -28,7 +29,7 @@
   --font-color: rgb(228, 230, 235);
   --font-extra-color: rgb(176, 179, 184);
   --brightness: brightness(1.2);
-  --hover-color: rgba(136, 136, 136, 0.269);
+  --hover-color: rgba(136, 136, 136, 0.107);
   --border-color: #555555;
 }
 
@@ -43,6 +44,15 @@ body {
   font-size: 1rem;
   width: 100%;
   height: 100vh;
-  background-color: var(--extra-bg);
+  background-color: var(--main-bg);
   color: var(--font-color);
+}
+
+a{
+  text-decoration: none;
+  color: var(--font-color);
+}
+
+hr{
+  margin: .4rem 0;
 }
