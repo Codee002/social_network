@@ -1,25 +1,26 @@
-import AdminLayout from "../layouts/AdminLayout"
-import Test from "../pages/admin/TestPage"
-import Card from "../pages/admin/CardPage"
+import AdminLayout from '../layouts/AdminLayout'
+import Test from '../pages/admin/TestPage'
+import Card from '../pages/admin/CardPage'
 
 const adminRoutes = [
   {
-    path: "/admin",
+    path: '/admin',
     component: AdminLayout,
     children: [
       {
-        path: "test",
+        path: 'test',
         component: Test,
-        name: "admin.test"
+        name: 'admin.test',
+        meta: { requiresAuth: true },
       },
       {
-        path: "card",
+        path: 'card',
         component: Card,
-        name: "admin.card"
-      }
-    ]
-  }
-];
+        name: 'admin.card',
+        meta: { requiresAuth: true },
+      },
+    ],
+  },
+]
 
-
-export default adminRoutes;
+export default adminRoutes
