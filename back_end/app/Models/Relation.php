@@ -22,4 +22,23 @@ class Relation extends Model
     {
         return $this->belongsTo(User::class, 'received_id', 'id');
     }
+
+    // -------------- Function -------------------
+    public static function getRelationShip($ownerId, $userId)
+    {
+        $relation = Relation::query()
+            ->where("sender_id", $ownerId)
+            ->where("received_id", $userId)
+            ->first();
+
+        if (! $relation) {
+            $relation = Relation::query()
+                ->where("sender_id", $userId)
+                ->where("received_id", $ownerId)
+                ->first();
+        }
+
+        return $relation;
+    }
+
 }
