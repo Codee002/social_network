@@ -1,58 +1,52 @@
 <template>
-  <div class="form-group mg-form">
-    <!-- Username -->
+  <form @submit.prevent="onSubmit()" method="POST">
     <div class="form-group mg-form">
-      <p class="text-center fs-3 fw-semibold fw-bolder">Đăng nhập</p>
-      <div class="form-floating mb-3 mt-3">
-        <input
-          type="text"
-          class="form-control"
-          value=""
-          id="username"
-          placeholder="Enter username"
-          name="username"
-          autocomplete="off"
-          v-model="form.username"
-          :class="{ 'is-invalid': errors.username }"
-        />
-        <label class="label-input" for="username">Tên đăng nhập</label>
-        <span
-          v-if="errors.username"
-          class="invalid-feedback"
-          style="display: block"
-        >
-          <strong>{{ errors.username }}</strong>
-        </span>
+      <!-- Username -->
+      <div class="form-group mg-form">
+        <p class="text-center fs-3 fw-semibold fw-bolder">Đăng nhập</p>
+        <!-- <img :src="srcImg" alt=""> -->
+        <div class="form-floating mb-3 mt-3">
+          <input
+            type="text"
+            class="form-control"
+            value=""
+            id="username"
+            placeholder="Enter username"
+            name="username"
+            autocomplete="off"
+            v-model="form.username"
+            :class="{ 'is-invalid': errors.username }"
+          />
+          <label class="label-input" for="username">Tên đăng nhập</label>
+          <span v-if="errors.username" class="invalid-feedback" style="display: block">
+            <strong>{{ errors.username }}</strong>
+          </span>
+        </div>
       </div>
-    </div>
 
-    <!-- Password -->
-    <div class="form-group mg-form">
-      <div class="form-floating mt-3 mb-3">
-        <input
-          type="password"
-          class="form-control pwd-mg"
-          id="password"
-          placeholder="Enter password"
-          name="password"
-          style="background-image: none"
-          v-model="form.password"
-          :class="{ 'is-invalid': errors.password }"
-        />
-        <i class="fa-solid fa-eye pwd-eye" @click="onHidePassword($event)"></i>
-        <label class="label-input" for="password">Mật khẩu</label>
-        <span
-          v-if="errors.password"
-          class="invalid-feedback"
-          style="display: block"
-        >
-          <strong>{{ errors.password }}</strong>
-        </span>
+      <!-- Password -->
+      <div class="form-group mg-form">
+        <div class="form-floating mt-3 mb-3">
+          <input
+            type="password"
+            class="form-control pwd-mg"
+            id="password"
+            placeholder="Enter password"
+            name="password"
+            style="background-image: none"
+            v-model="form.password"
+            :class="{ 'is-invalid': errors.password }"
+          />
+          <i class="fa-solid fa-eye pwd-eye" @click="onHidePassword($event)"></i>
+          <label class="label-input" for="password">Mật khẩu</label>
+          <span v-if="errors.password" class="invalid-feedback" style="display: block">
+            <strong>{{ errors.password }}</strong>
+          </span>
+        </div>
       </div>
-    </div>
 
-    <!-- Capcha -->
-    <!-- <div class="form-group mg-form mb-3" style="align-items: center">
+      <!-- Capcha -->
+      <!-- <div class="form-group mg-form mb-3" style="align-items: center">
       <div
         class="form-floating mt-3 mb-0 d-flex justify-content-start"
         style="align-items: center"
@@ -76,94 +70,86 @@
       </div>
     </div> -->
 
-    <button type="button" @click="onSubmit()" class="btn btn-primary mg-btn">
-      Đăng nhập
-    </button>
+      <button type="submit" class="btn btn-primary mg-btn">Đăng nhập</button>
 
-    <hr />
-    <p class="text-center">
-      Chưa có tài khoản?
-      <router-link :to="{ name: 'auth.register' }">
-        <a class="text-decoration-none">Đăng ký</a></router-link
-      >
-    </p>
-    <p class="text-center">
-      <router-link :to="{ name: 'auth.forgot' }">
-        <a class="text-decoration-none">Quên mật khẩu?</a>
-      </router-link>
-    </p>
+      <hr />
+      <p class="text-center">
+        Chưa có tài khoản?
+        <router-link :to="{ name: 'auth.register' }">
+          <a class="text-decoration-none">Đăng ký</a>
+        </router-link>
+      </p>
+      <p class="text-center">
+        <router-link :to="{ name: 'auth.forgot' }">
+          <a class="text-decoration-none">Quên mật khẩu?</a>
+        </router-link>
+      </p>
 
-    <p class="text-center footer-form">
-      <a href="">Hỗ trợ</a> | <a href="">Chính sách &amp; bảo mật</a>
-    </p>
-  </div>
+      <p class="text-center footer-form">
+        <a href="">Hỗ trợ</a>
+        |
+        <a href="">Chính sách &amp; bảo mật</a>
+      </p>
+    </div>
+  </form>
 </template>
 
 
 
 <script setup>
 // ----------------------- Import -----------------------
-// import router from "@/router";
-import configs from "@/utils/configs";
-import axios from "axios";
-import { reactive, defineEmits } from "vue";
-import { useToast } from "vue-toastification";
-import ToastAlert from "../../components/ToastAlert.vue";
+import router from '@/router'
+import axios from 'axios'
+import { reactive, defineEmits } from 'vue'
+import { useToast } from 'vue-toastification'
+import ToastAlert from '../../components/ToastAlert.vue'
+import { h } from 'vue'
 
 // ----------------------- Variable -----------------------
-// import axios from 'axios';
-import { h } from "vue";
-const errors = reactive({});
-const toast = useToast();
+const errors = reactive({})
+const toast = useToast()
 const form = reactive({
-  username: "",
-  password: "",
-  capcha: "",
-});
-const emit = defineEmits(["changeTypePassword"]);
+  username: '',
+  password: '',
+  capcha: '',
+})
+const emit = defineEmits(['changeTypePassword'])
+// const srcImg = ref(require("@/assets/images/general/login.png"))
 
 // ----------------------- Function -----------------------
-function onSubmit() {
+async function onSubmit() {
   // Validate
-  if (!form.username || form.username.trim().length == 0)
-    errors.username = "Tên đăng nhập không được để trống";
-  else errors.username = "";
+  if (!form.username || form.username.trim().length == 0) errors.username = 'Tên đăng nhập không được để trống'
+  else errors.username = ''
 
-  if (!form.password || form.password.trim().length == 0)
-    errors.password = "Mật khẩu không được để trống";
-  else errors.password = "";
+  if (!form.password || form.password.trim().length == 0) errors.password = 'Mật khẩu không được để trống'
+  else errors.password = ''
 
-  const hasErrors = Object.values(errors).some((error) => error && error != "");
+  const hasErrors = Object.values(errors).some((error) => error && error != '')
   if (hasErrors != true) {
-    axios
-      .post(`${configs.pathApi}/auth/login`, form)
-      .then((res) => {
-        toast.success("Đăng nhập thành công", {
-          position: "top-center",
-        });
-        localStorage.setItem("token", res.data.token);
-        console.log(res);
-      })
-      .catch((error) => {
-        if (error.response) {
-          const resData = error.response.data;
-          toast.error(
-            h(ToastAlert, {
-              message: resData.errors.message,
-            }),
-            {
-              position: "top-center",
-              timeout: 5000,
-              closeOnClick: true,
-            }
-          );
-        }
-      });
+    try {
+      const res = await axios.post(`/auth/login`, form)
+      localStorage.setItem('auth_token', res.data.auth_token)
+      router.push({ name: 'home' })
+    } catch (error) {
+      if (error.response) {
+        const resData = error.response.data
+        toast.error(
+          h(ToastAlert, {
+            message: resData.errors.message,
+          }),
+          {
+            position: 'top-center',
+            timeout: 5000,
+            closeOnClick: true,
+          }
+        )
+      }
+    }
   }
 }
 
 function onHidePassword(event) {
-  console.log("asczxc");
-  emit("changeTypePassword", event);
+  emit('changeTypePassword', event)
 }
 </script>

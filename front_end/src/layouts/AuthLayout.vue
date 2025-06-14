@@ -12,13 +12,13 @@
 // import { ref } from "vue";
 // const title = ref("Đăng nhập");
 function changeTypePassword(event) {
-  const input = event.target.parentElement.querySelector("input");
-  if (input.type == "password") {
-    input.type = "text";
-    event.target.classList.replace("fa-eye", "fa-eye-slash");
+  const input = event.target.parentElement.querySelector('input')
+  if (input.type == 'password') {
+    input.type = 'text'
+    event.target.classList.replace('fa-eye', 'fa-eye-slash')
   } else {
-    input.type = "password";
-    event.target.classList.replace("fa-eye-slash", "fa-eye");
+    input.type = 'password'
+    event.target.classList.replace('fa-eye-slash', 'fa-eye')
   }
 }
 </script>
@@ -162,7 +162,7 @@ function changeTypePassword(event) {
   color: #000 !important;
 }
 
-.form-wrapper .form-check-input:checked[type="checkbox"] {
+.form-wrapper .form-check-input:checked[type='checkbox'] {
   --bs-form-check-bg-image: unset !important
     ;
 }
