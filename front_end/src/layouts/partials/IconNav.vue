@@ -11,7 +11,6 @@
 import { defineProps } from "vue";
 defineProps({
   isActive: {
-    type: String,
     required: false,
   },
 });
