@@ -69,7 +69,7 @@ class User extends Authenticatable
 
     public function conversations()
     {
-        return $this->belongsToMany(Conversation::class)->withPivot('role', 'joined_at', 'has_created');
+        return $this->belongsToMany(Conversation::class)->withPivot('name', 'role', 'joined_at', 'has_created');
     }
 
     public function messages()
@@ -81,5 +81,20 @@ class User extends Authenticatable
     public function isNotBanned()
     {
         return $this->status == "actived";
+    }
+
+    // Lấy ra danh sách bạn bè
+    public function getFriends()
+    {
+        // $this->sender
+    }
+
+    public function getAddFriend()
+    {
+        $sentRelations = $this->sentRelations;
+        foreach ($sentRelations as $relation) {
+            echo $relation->ReceivedId;
+            echo $relation->status;
+        }
     }
 }

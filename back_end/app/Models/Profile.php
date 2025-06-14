@@ -13,6 +13,7 @@ class Profile extends Model
         'avatar',
         'thumb',
         'bio',
+        'user_id',
     ];
 
     // ------------ Relation -----------

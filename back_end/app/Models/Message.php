@@ -10,6 +10,8 @@ class Message extends Model
     protected $fillable = [
         'content',
         'type',
+        'user_id',
+        'conversation_id',
     ];
 
     // ----------- Relation --------------
