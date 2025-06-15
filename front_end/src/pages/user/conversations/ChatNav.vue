@@ -18,7 +18,9 @@
           <template v-slot:des>
             <p>{{ conversation.user.name }}</p>
           </template>
-          <template v-slot:message><p style="font-weight: 350">Hồ sent a sticker... 1w</p></template>
+          <template v-slot:message>
+            <p style="font-weight: 350">{{ messageShow(index) }}</p>
+          </template>
         </nav-component>
       </router-link>
     </div>
@@ -29,12 +31,20 @@
 import NavComponent from '@/layouts/partials/NavComponent.vue'
 import { defineProps } from 'vue'
 
-defineProps({
+const props = defineProps({
   conversations: {
     type: Object,
     default: null,
   },
 })
+
+function messageShow(index) {
+  if (props.conversations[index].message)
+  {
+    return props.conversations[index].message.content
+  }
+  return "Chưa có tin nhắn"
+}
 </script>
 
 <style scoped>
