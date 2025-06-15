@@ -1,10 +1,12 @@
 <?php
 namespace App\Http\Controllers\Api\User;
 
+use App\Events\ReceiveMessageRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ConversationController extends Controller
@@ -51,11 +53,12 @@ class ConversationController extends Controller
         try {
             $owner         = $request->user();
             $conversations = $owner->conversations()
-                ->orderBy("created_at", 'desc')
-                ->with('messages')
+                ->orderBy("updated_at", 'desc')
                 ->get();
+
             foreach ($conversations as $conversation) {
-                $conversation['user'] = $conversation->users()->where("user_id", '!=', $owner->id)->first()->profile;
+                $conversation['user']    = $conversation->users()->where("user_id", '!=', $owner->id)->first()->profile;
+                $conversation['message'] = $conversation->messages()->orderBy("id", 'desc')->first();
             }
             return response()->json([
                 'success'       => true,
@@ -75,7 +78,9 @@ class ConversationController extends Controller
     public function getMessage($conversationId)
     {
         try {
-            $conversation = Conversation::find($conversationId)->load('messages');
+            $conversation             = Conversation::find($conversationId);
+            $conversation['users']    = $conversation->users()->with('profile')->get();
+            $conversation['messages'] = $conversation->messages()->orderBy("created_at", 'desc')->get();
             return response()->json([
                 'success'      => true,
                 'message'      => "Lấy danh sách hội thoại thành công",
@@ -92,12 +97,25 @@ class ConversationController extends Controller
 
     public function sendMessage(Request $request)
     {
-        // dd($request->all());
+        $owner = Auth::user();
         try {
             $result = DB::transaction(function () use ($request) {
                 $message = Message::create($request->all());
+                $message->conversation->update([
+                    'updated_at' => now(),
+                ]);
                 return $message;
             });
+
+            $usersIdArray = $result->conversation->users()->pluck('user_id')->all();
+            broadcast(new ReceiveMessageRequest($result, $owner->id));
+
+            foreach ($usersIdArray as $userId) {
+                if ($userId != $owner->id) {
+                    broadcast(new ReceiveMessageRequest($result, $userId));
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => "Gửi tin nhắn thành công",

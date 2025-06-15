@@ -9,6 +9,7 @@ class Conversation extends Model
         'name',
         'thumb',
         'type',
+        'updated_at',
     ];
 
     // ----------- Relation --------------
