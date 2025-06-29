@@ -41,4 +41,39 @@ class Relation extends Model
         return $relation;
     }
 
+    public static function getFriends($userId)
+    {
+        $send = User::find($userId)->sendRelations()
+            ->where("type", 'friend')
+            ->where("status", 'completed')
+            ->get();
+        $receive = User::find($userId)->receivedRelations()
+            ->where("type", 'friend')
+            ->where("status", 'completed')
+            ->get();
+
+        $friendList = $send->merge($receive);
+        foreach ($friendList as $friend) {
+            if ($friend['sender_id'] != $userId) {
+                $friend['user'] = User::find($friend['sender_id'])->load("profile");
+            } else if ($friend['received_id'] != $userId) {
+                $friend['user'] = User::find($friend['received_id'])->load("profile");
+            }
+        }
+        return $friendList;
+    }
+
+    public static function getInvited($userId)
+    {
+        $listInvited = User::find($userId)->receivedRelations()
+            ->where("type", 'friend')
+            ->where("status", 'pending')
+            ->get();
+
+        foreach ($listInvited as $invited) {
+            $invited['user'] = User::find($invited['sender_id'])->load("profile");
+        }
+        return $listInvited;
+    }
+
 }

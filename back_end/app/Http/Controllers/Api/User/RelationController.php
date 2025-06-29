@@ -2,9 +2,9 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Events\NewRelationRequest;
+use App\Events\ReceiveRelationRequest;
+use App\Events\SendRelationRequest;
 use App\Http\Controllers\Controller;
-use App\Models\Conversation;
-use App\Models\Message;
 use App\Models\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +18,8 @@ class RelationController extends Controller
                 $request['sender_id'] = $request->user()->id;
                 $relation             = Relation::query()->create($request->all());
                 broadcast(new NewRelationRequest($request->user(), $relation))->toOthers();
+                broadcast(new ReceiveRelationRequest($relation))->toOthers();
+                broadcast(new SendRelationRequest($relation))->toOthers();
                 return $relation;
             });
             return response()->json([
@@ -33,7 +35,6 @@ class RelationController extends Controller
                 "data"    => $th->getMessage(),
             ], 400);
         }
-
     }
 
     public function changeRelation(Request $request)
@@ -46,9 +47,15 @@ class RelationController extends Controller
                 if ($request['status'] == "reject") {
                     $relation->delete();
                     $tempRelation['status'] = 'reject';
+                } else if ($request['status'] == 'delete') {
+                    $relation->delete();
+                    $tempRelation['status'] = 'delete';
+                } else {
+                    $relation->update($request->all());
                 }
-                $relation->update($request->all());
                 broadcast(new NewRelationRequest($request->user(), $tempRelation))->toOthers();
+                broadcast(new ReceiveRelationRequest($tempRelation))->toOthers();
+                broadcast(new SendRelationRequest($tempRelation))->toOthers();
                 return $tempRelation;
             });
             return response()->json([
@@ -65,7 +72,5 @@ class RelationController extends Controller
             ], 400);
         }
     }
-
-
 
 }
