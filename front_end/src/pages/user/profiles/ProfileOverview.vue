@@ -66,7 +66,11 @@
         Bạn bè
       </button>
 
-      <button class="profile__btn profile__btn--primary btn" v-if="relationStatus == 'friend'">
+      <button
+        class="profile__btn profile__btn--primary btn"
+        v-if="relationStatus == 'friend'"
+        @click="startChat(user.id)"
+      >
         <i class="fa-solid fa-message"></i>
         Nhắn tin
       </button>
@@ -149,8 +153,11 @@
 </template>
 
 <script setup>
-import { computed, defineProps, defineEmits } from 'vue'
+import router from '@/router'
+import axios from 'axios'
+import { computed, defineProps, defineEmits, ref } from 'vue'
 
+const conversation = ref()
 const props = defineProps({
   user: {
     type: Object,
@@ -174,6 +181,19 @@ const srcAvtUser = computed(() => {
 })
 
 const emit = defineEmits(['addRelation', 'changeRelation'])
+
+
+async function startChat(userId) {
+  try {
+    const res = await axios.post('/conversation/find', {
+      user_id: userId,
+    })
+    conversation.value = res.data.conversation
+    router.push({ name: 'conversation.chat', params: { conversation_id: conversation.value.id } })
+  } catch (error) {
+    console.log('Không lấy được thông tin!', error)
+  }
+}
 
 function addRelation(type, status) {
   emit('addRelation', type, status)

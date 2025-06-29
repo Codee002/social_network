@@ -81,24 +81,6 @@ defineProps({
   margin: auto;
 }
 
-.modal-content {
-  background-color: var(--main-extra-bg) !important;
-}
-
-.modal-header {
-  top: 0;
-  width: 100%;
-  justify-content: center;
-  background-color: var(--main-extra-bg);
-}
-
-.modal-close {
-  position: absolute;
-  padding: 0;
-  left: 1rem;
-  color: var(--font-color);
-}
-
 .upload__btn--secondary {
   background-color: var(--extra-bg);
   color: var(--font-color);
