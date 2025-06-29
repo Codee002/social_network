@@ -1,53 +1,93 @@
 <template>
-  <div class="friendList col-12 col-sm-8 offset-sm-2">
-    <friend-breadcrumb
-      :show="show"
-      @changeMode="changeMode"
-    ></friend-breadcrumb>
-    <hr />
+  <div class="friendList col-12 col-sm-8 offset-sm-2" v-if="owner && listFriend">
     <!-- Danh sách bạn bè -->
     <friend-list
+      @changeMode="changeMode"
+      :search="search"
+      :listFriend="listFriend"
+      :relationStatus="relationStatus"
       v-if="mode == 'friendList'"
-      :srcAvtUser="srcAvtUser"
+      @changeRelation="changeRelation"
     ></friend-list>
 
+    <!-- Lời mời kết bạn -->
     <friend-invited
-      :srcAvtUser="srcAvtUser"
+      :listInvited="listInvited"
+      @changeMode="changeMode"
+      @changeRelation="changeRelation"
       v-if="mode == 'friendInvited'"
     ></friend-invited>
   </div>
+  <div class="spinner-border" v-else style="margin: auto"></div>
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
-import FriendInvited from "@/pages/user/friends/FriendInvited.vue";
-import FriendBreadcrumb from "@/pages/user/friends/FriendBreadcrumb.vue";
-import FriendList from "@/pages/user/friends/FriendList.vue";
+import { onMounted, ref, defineProps } from 'vue'
+import FriendInvited from '@/pages/user/friends/FriendInvited.vue'
+import FriendList from '@/pages/user/friends/FriendList.vue'
+import auth from '@/utils/auth'
+import axios from 'axios'
 
-const srcAvtUser = ref(require("@/assets/images/avatar/default.jpg"));
+defineProps({
+  relationStatus: {
+    default: 'owner',
+  },
+})
 
-let mode = ref("friendList");
-let show = reactive({});
+let mode = ref('friendList')
+const owner = ref()
+const search = ref()
+const listFriend = ref()
+const listInvited = ref([])
 
-function changeShow() {
-  if (mode.value == "friendList") {
-    show.title = "Bạn bè";
-    show.navName = "Lời mời kết bạn";
-    show.mode = "friendInvited";
-    show.form = true;
-  } else if (mode.value == "friendInvited") {
-    show.title = "Lời mời kết bạn";
-    show.navName = "Danh sách bạn bè";
-    show.mode = "friendList";
-    show.form = false;
+onMounted(async () => {
+  try {
+    owner.value = await auth.getOwner()
+    let res = await axios.get(`/getFriends/${owner.value.id}`)
+    listFriend.value = res.data.friendList
+
+    res = await axios.get(`/getInvited/${owner.value.id}`)
+    listInvited.value = res.data.listInvited
+
+    window.Echo.private(`user.${owner.value.id}`)
+      .listen('.receive.relation', (e) => {
+        console.log('Broadcast: receive.relation', e.friendList)
+        listInvited.value = e.listInvited
+        listFriend.value = e.friendList
+      })
+      .error((error) => {
+        console.error('Echo error:', error)
+      })
+
+    window.Echo.private(`user.${owner.value.id}`)
+      .listen('.send.relation', (e) => {
+        console.log('Broadcast: send.relation', e.friendList)
+        listInvited.value = e.listInvited
+        listFriend.value = e.friendList
+      })
+      .error((error) => {
+        console.error('Echo error:', error)
+      })
+  } catch (error) {
+    console.log('Không lấy được thông tin!', error)
+    owner.value = null
+  }
+})
+
+async function changeRelation(relationId, type, status) {
+  try {
+    await axios.post(`/relation/changeRelation`, {
+      relation_id: relationId,
+      type: type,
+      status: status,
+    })
+  } catch (error) {
+    console.log('Đã xảy ra lỗi', error)
   }
 }
-changeShow();
 
 function changeMode(change) {
-  mode.value = change;
-  console.log(mode.value);
-  changeShow();
+  mode.value = change
 }
 </script>
 
