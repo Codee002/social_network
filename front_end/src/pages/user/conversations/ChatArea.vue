@@ -20,17 +20,61 @@
       </div>
       <div class="chat-content" v-if="conversation.messages.length">
         <div v-for="(message, index) in conversation.messages" :key="index">
-          <div class="chat-time">{{ getDisplayTime(index) }}</div>
+          <!-- Thời gian -->
+          <div class="chat-time" v-if="getDisplayTime(index) != ''">{{ getDisplayTime(index) }}</div>
+
+          <!-- Người khác -->
           <div class="is-user" v-if="message.user_id != owner.id">
             <router-link :to="{ name: 'profile', params: { user_id: message.user_id } }">
               <div class="chat-avatar">
                 <img class="avatar" :src="srcAvtUser" alt="" />
               </div>
             </router-link>
-            <div class="chat-message">{{ message.content }}</div>
+
+            <div>
+              <!-- Ảnh và video -->
+              <div v-if="message.medias.length != 0" class="mt-2 d-flex flex-wrap align-items-end" style="width: 60%">
+                <div v-for="(media, index) in message.medias" :key="index" class="chat-message__media">
+                  <img v-if="media.type == 'image'" :src="$backendBaseUrl + media.path" />
+                  <video v-else-if="media.type == 'video'" :src="$backendBaseUrl + media.path" controls />
+                </div>
+              </div>
+              <div class="chat-message" v-if="message.content != null">
+                <p class="d-contents mb-0">
+                  {{ message.content }}
+                </p>
+              </div>
+            </div>
           </div>
+
+          <!-- Người dùng hiện tại -->
           <div class="is-owner" v-if="message.user_id == owner.id">
-            <div class="chat-message">{{ message.content }}</div>
+            <div class="d-flex flex-column align-items-end">
+              <!-- Ảnh và video -->
+              <div
+                v-if="message.medias.length != 0"
+                class="mt-2 d-flex flex-wrap align-items-end justify-content-end"
+                style="width: 60%"
+              >
+                <div v-for="(media, index) in message.medias" :key="index" class="chat-message__media">
+                  <img v-if="media.type == 'image'" :src="$backendBaseUrl + media.path" />
+                  <video v-else-if="media.type == 'video'" :src="$backendBaseUrl + media.path" controls />
+                </div>
+              </div>
+
+              <!-- Tin nhắn -->
+              <div class="chat-message" v-if="message.content != null">
+                <p class="d-contents mb-0">
+                  {{ message.content }}
+                </p>
+              </div>
+
+              <!-- Hiển thị tiến trình -->
+              <div v-if="uploadProgress > 0 && uploadProgress < 100" class="upload-bar">
+                <div class="progress" :style="{ width: uploadProgress + '%' }"></div>
+                <span>Đang upload: {{ uploadProgress }}%</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -38,13 +82,42 @@
         <p>Chưa có tin nhắn nào</p>
       </div>
       <div class="chat-form">
+        <!-- Xem trước ảnh, video gửi đi -->
+        <div v-if="mediaFiles.length" class="d-flex flex-wrap align-items-end" style="width: 100%; padding: 0.4rem">
+          <div
+            v-for="(file, index) in mediaFiles"
+            :key="index"
+            class="media-item media-preview"
+            style="margin-bottom: 10px"
+          >
+            <i @click="removeFile(index)" class="fa-solid fa-xmark media__deleteBtn"></i>
+            <img v-if="file.type.startsWith('image/')" :src="file.url" />
+            <video v-else-if="file.type.startsWith('video/')" :src="file.url" />
+          </div>
+        </div>
         <form @submit.prevent="sendMessage()" action="" style="">
-          <input type="text" class="form-control" placeholder="Tin nhắn..." v-model="content" />
-          <div class="icon">
-            <i class="fa-solid fa-image"></i>
+          <!-- Form gửi tin nhắn -->
+          <textarea
+            type="text"
+            class="form-control"
+            @input="autoResize"
+            rows="1"
+            placeholder="Tin nhắn..."
+            v-model="content"
+          ></textarea>
+          <div class="icon d-flex">
+            <i @click="triggerFileInput" class="fa-solid fa-image"></i>
             <button type="submit" style="background: none; border: none">
               <i class="fa-solid fa-paper-plane"></i>
             </button>
+            <input
+              type="file"
+              ref="fileInput"
+              multiple
+              accept="image/*,video/*"
+              @change="handleFilesChange"
+              style="display: none"
+            />
           </div>
         </form>
       </div>
@@ -60,13 +133,16 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { differenceInMinutes, format } from 'date-fns'
 
-const content = ref()
+const content = ref('')
 const route = useRoute()
 const conversationId = computed(() => route.params.conversation_id)
 const conversation = ref()
 const owner = ref()
 const loading = ref(true)
 const converInfo = computed(() => getConverInfo())
+const fileInput = ref()
+const mediaFiles = ref([])
+const uploadProgress = ref(0)
 
 onMounted(async () => {
   try {
@@ -107,6 +183,7 @@ const srcAvtUser = computed(() => {
   return require('@/assets/images/avatar/default.jpg')
 })
 
+// Lấy thông tin cuộc trò chuyện
 function getConverInfo() {
   let avatar = ''
   let name = ''
@@ -124,33 +201,56 @@ function getConverInfo() {
   }
 }
 
+// Lấy tin nhắn
 async function fetchMessages() {
   try {
     let res = await axios.get(`/conversation/message/${conversationId.value}`)
     conversation.value = res.data.conversation
+    console.log(conversation.value)
     loading.value = false
   } catch (error) {
     console.log('Không lấy được thông tin!', error)
   }
 }
 
+// Gửi tin nhắn
 async function sendMessage() {
-  if (content.value.trim().length != 0) {
-    try {
-      let data = content.value
-      content.value = ''
-      await axios.post(`conversation/sendMessage`, {
-        user_id: owner.value.id,
-        conversation_id: conversation.value.id,
-        content: data,
-        type: 'message',
+  if (mediaFiles.value.length == 0 && content.value.trim().length == 0) return
+
+  try {
+    const formData = new FormData()
+    formData.append('content', content.value)
+    formData.append('user_id', owner.value.id)
+    formData.append('conversation_id', conversation.value.id)
+
+    // Nếu có media
+    if (mediaFiles.value.length != 0) {
+      formData.append('type', 'media')
+      mediaFiles.value.forEach((media) => {
+        formData.append('media[]', media.file)
       })
-    } catch (error) {
-      console.log('Gửi tin nhắn thất bại!', error)
+    } else {
+      formData.append('type', 'message')
     }
+
+    content.value = ''
+    mediaFiles.value = []
+    await axios.post(`conversation/sendMessage`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (e) => {
+        const percent = Math.round((e.loaded * 100) / e.total)
+        uploadProgress.value = percent
+      },
+    })
+    uploadProgress.value = 0
+  } catch (error) {
+    console.log('Gửi tin nhắn thất bại!', error)
   }
 }
 
+// Lấy thời gian nhắn
 function getDisplayTime(messIndex) {
   const createdAt = new Date(conversation.value.messages[messIndex].created_at)
   if (messIndex === conversation.value.messages.length - 1) {
@@ -162,11 +262,41 @@ function getDisplayTime(messIndex) {
   return diffMinutes > 20 ? format(currentTime, 'MMM d, yyyy, h:mm a') : ''
 }
 
+// Chọn phương tiện
+const triggerFileInput = () => {
+  fileInput.value.click()
+}
+
+// Xử lý phương tiện
+const handleFilesChange = (event) => {
+  const files = Array.from(event.target.files)
+  files.forEach((file) => {
+    const url = URL.createObjectURL(file)
+    mediaFiles.value.push({
+      file,
+      url,
+      type: file.type,
+    })
+    console.log(file.type)
+  })
+}
+
+// Xóa ảnh
+const removeFile = (index) => {
+  mediaFiles.value.splice(index, 1)
+}
+
 function scrollToBottom() {
   const chatArea = document.querySelector('.chat-area')
   if (chatArea) {
     chatArea.scrollTop = chatArea.scrollHeight
   }
+}
+
+function autoResize(event) {
+  const textarea = event.target
+  textarea.style.height = 'auto'
+  textarea.style.height = textarea.scrollHeight + 'px'
 }
 </script>
 
@@ -245,7 +375,7 @@ function scrollToBottom() {
   display: flex;
   justify-content: start;
   padding: 0.1rem;
-  align-items: center;
+  align-items: end;
 }
 
 .chat-content .is-owner {
@@ -254,13 +384,13 @@ function scrollToBottom() {
   display: flex;
   justify-content: end;
   padding: 0.1rem;
-  align-items: center;
+  align-items: end;
 }
 
 .chat-content .chat-time {
   font-weight: 400;
   font-size: 0.7rem;
-  /* margin: 0.8rem 0; */
+  margin: 0.8rem 0;
 }
 
 .chat-content .chat-message {
@@ -270,6 +400,7 @@ function scrollToBottom() {
   max-width: 35rem;
   word-wrap: break-word;
   text-align: left;
+  width: fit-content;
 }
 
 .chat-content .is-owner .chat-message {
@@ -283,13 +414,38 @@ function scrollToBottom() {
   margin-right: 0.4rem;
 }
 
+.chat-message p {
+  display: contents;
+  margin: 0;
+}
+
+.chat-message__media {
+  /* width: 10rem; */
+  border-radius: 0.5rem;
+}
+
+.chat-message__media img {
+  width: 10rem;
+  border-radius: 0;
+  height: unset;
+  border-radius: 1.2rem;
+  margin-bottom: 0.2rem;
+}
+
+.chat-message__media video {
+  width: 100%;
+  border-radius: 0;
+  height: unset;
+  border-radius: 1.2rem;
+}
+
 .chat-form {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  height: 3rem;
   align-items: center;
-  border-radius: 4rem;
-  padding: 1rem 0.4rem;
+  border-radius: 1.4rem;
+  padding: 0.2rem 0.4rem;
   width: 90%;
   background-color: var(--main-bg) !important;
   border: 1px solid var(--border-color) !important;
@@ -304,7 +460,7 @@ function scrollToBottom() {
   align-items: center;
   justify-content: center;
 }
-.chat-form input {
+.chat-form textarea {
   width: 90% !important;
   /* background-color: var(--main-bg) !important; */
   border-radius: 2rem !important;
@@ -313,7 +469,7 @@ function scrollToBottom() {
   outline: none !important;
 }
 
-.chat-form input:focus {
+.chat-form textarea:focus {
   box-shadow: none !important;
   background-color: transparent !important;
   color: var(--font-color) !important;
@@ -328,5 +484,41 @@ function scrollToBottom() {
 
 .chat-form .icon i:hover {
   color: var(--main1-color);
+}
+
+.media-preview {
+  position: relative;
+  border-radius: 0.5rem;
+  width: 7rem;
+}
+
+.media-preview .media__deleteBtn {
+  position: absolute;
+  right: 0.4rem;
+  top: 0.4rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.media-preview img,
+.media-preview video {
+  width: 100%;
+  border-radius: 0.5rem;
+}
+
+.upload-bar {
+  position: relative;
+  background: #eee;
+  height: 10px;
+  border-radius: 6px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.progress {
+  background: var(--main1-color);
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.3s;
 }
 </style>
