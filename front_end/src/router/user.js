@@ -5,6 +5,7 @@ import ProfilePage from '../pages/user/ProfilePage'
 import FavoritePage from '../pages/user/FavoritePage'
 import ConversationPage from '../pages/user/ConversationPage'
 import ChatArea from '@/pages/user/conversations/ChatArea'
+import PostPage from '@/pages/user/PostPage'
 
 const userRoutes = [
   {
@@ -28,7 +29,7 @@ const userRoutes = [
         component: FriendPage,
         name: 'friend',
         meta: {
-          title: 'Đăng nhập',
+          title: 'Bạn bè',
           requiresAuth: true,
         },
       },
@@ -68,6 +69,15 @@ const userRoutes = [
             },
           },
         ],
+      },
+      {
+        path: 'post/:post_id',
+        component: PostPage,
+        name: 'post',
+        meta: {
+          title: 'Bài viết',
+          requiresAuth: true,
+        },
       },
     ],
   },

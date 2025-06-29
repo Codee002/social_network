@@ -1,6 +1,5 @@
 import axios from 'axios'
 // import router from '@/router'
-import configs from '@/utils/configs'
 
 function isLogin() {
   return !!localStorage.getItem('auth_token')
@@ -8,15 +7,7 @@ function isLogin() {
 
 async function logout() {
   try {
-    await axios.post(
-      `${configs.pathApi}/auth/logout`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-        },
-      },
-    )
+    await axios.post(`/auth/logout`)
 
     localStorage.removeItem('auth_token')
 
@@ -27,12 +18,22 @@ async function logout() {
 }
 
 async function getOwner() {
-  const res = await axios.get(`${configs.pathApi}/owner`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-    },
-  })
+  const res = await axios.get(`/owner`)
   return res.data.user
 }
 
-export default { isLogin, logout, getOwner }
+function getRelationStatus(relation) {
+  if (relation == 'stranger' || relation.status == 'reject') {
+    return 'stranger'
+  } else if (relation.type == 'friend') {
+    if (relation.status == 'completed') {
+      return 'friend'
+    } else {
+      return 'friend_pending'
+    }
+  }
+
+  return 'owner'
+}
+
+export default { isLogin, logout, getOwner, getRelationStatus }

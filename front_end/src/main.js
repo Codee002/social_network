@@ -21,10 +21,6 @@ window.Echo = new Echo({
   },
 })
 
-// Ant Design Vue
-import Antd from 'ant-design-vue'
-import 'ant-design-vue/dist/reset.css'
-
 // Vue Toastification
 import Toast from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
@@ -38,7 +34,7 @@ const options = {
 import axios from 'axios'
 window.axios = axios
 axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('auth_token')}`
-axios.defaults.baseURL = process.env.VUE_APP_DOMAIN_API;
+axios.defaults.baseURL = process.env.VUE_APP_DOMAIN_API
 
 // Router
 import router from './router/index'
@@ -46,8 +42,14 @@ import router from './router/index'
 // CSS
 import './assets/styles/global.css'
 
+// Time
+import dayjs from './plugins/dayjs'
+
 const app = createApp(App)
+
+app.config.globalProperties.$dayjs = dayjs
+app.config.globalProperties.$backendBaseUrl = process.env.VUE_APP_BACKEND_URL
+
 app.use(Toast, options)
 app.use(router)
-app.use(Antd)
 app.mount('#app')

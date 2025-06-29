@@ -11,7 +11,7 @@
   --light: #f3f3f3;
 }
 
-[data-bs-theme="light"]:root {
+[data-bs-theme='light']:root {
   --main-bg: rgb(240, 242, 245);
   --main-extra-bg: rgb(255, 255, 255);
   --extra-bg: rgb(228, 230, 235);
@@ -22,7 +22,7 @@
   --border-color: #ced4da;
 }
 
-[data-bs-theme="dark"]:root {
+[data-bs-theme='dark']:root {
   --main-bg: rgb(24, 25, 26);
   --main-extra-bg: rgb(36, 37, 38);
   --extra-bg: rgb(58, 59, 60);
@@ -48,11 +48,113 @@ body {
   color: var(--font-color);
 }
 
-a{
+a {
   text-decoration: none;
   color: var(--font-color);
 }
 
-hr{
-  margin: .4rem 0;
+hr {
+  margin: 0.4rem 0;
+}
+
+.dropdown-menu {
+  background-color: var(--main-extra-bg) !important;
+}
+
+.dropdown-menu li:hover {
+  cursor: pointer;
+  background-color: var(--hover-color) !important;
+}
+
+.dropdown-menu .dropdown-item {
+  cursor: pointer;
+}
+
+.dropdown-menu .dropdown-item:active {
+  background-color: var(--hover-color) !important;
+}
+
+/* Modal */
+.modal-content {
+  background-color: var(--main-extra-bg) !important;
+}
+
+.modal-close {
+  position: absolute;
+  padding: 0;
+  left: 1rem;
+  color: var(--font-color);
+}
+
+.modal-dialog {
+  height: 100%;
+  max-width: 33.33rem;
+  margin-block: 0;
+}
+
+.modal-content {
+  position: relative;
+  background-color: var(--main-extra-bg);
+  max-height: 100%;
+}
+
+.modal-header {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  justify-content: center;
+  background-color: var(--main-extra-bg);
+  height: var(--header-heigh);
+}
+
+.modal-dialogt select {
+  background-color: var(--extra-bg);
+  border-radius: 0.25rem;
+  padding-left: 1.25rem;
+  color: var(--font-color);
+  font-weight: 600;
+  border: none;
+}
+
+.modal-body {
+  margin-top: var(--header-heigh);
+  padding: 0;
+  overflow-y: auto;
+  min-height: 100%;
+  max-height: 150%;
+  background-color: var(--main-extra-bg);
+  padding: 1rem;
+}
+
+.modal-footer {
+  display: flex;
+  width: 100%;
+  background-color: var(--main-extra-bg);
+  padding: 1rem 1rem;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-dialog .upload__btn--primary {
+  background-color: var(--main1-color);
+  color: var(--font-color);
+}
+
+.modal-dialog .upload__btn {
+  height: 2.5rem;
+  width: 45%;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  margin: 0;
+  border: none;
+}
+
+.upload__btn--secondary{
+    background-color: var(--extra-bg);
+    color: var(--font-color);
+}
+
+.upload__btn--secondary:hover{
+    background-color: var(--extra-bg) !important;
 }
