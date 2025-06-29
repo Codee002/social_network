@@ -10,18 +10,16 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-class NewRelationRequest implements ShouldBroadcastNow
+class ReceiveRelationRequest implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $owner;
     public $relation;
     /**
      * Create a new event instance.
      */
-    public function __construct($owner, $relation)
+    public function __construct($relation)
     {
-        $this->owner    = $owner;
         $this->relation = $relation;
         // dd('user.' . $this->relation->sender_id);
     }
@@ -33,23 +31,27 @@ class NewRelationRequest implements ShouldBroadcastNow
      */
     public function broadcastOn()
     {
-        Log::info('Broadcasting NewRelationRequest', ['relation' => $this->relation]);
+        Log::info('Broadcasting ReceiveRelationRequest', ['relation' => $this->relation]);
         return [
             new PrivateChannel('user.' . $this->relation->received_id),
-            new PrivateChannel('user.' . $this->relation->sender_id),
         ];
     }
 
     public function broadcastAs()
     {
-        return 'relation.request';
+        return 'receive.relation';
     }
 
     public function broadcastWith()
     {
-        $relation = $this->relation['status'] == 'delete' ? "stranger" : $this->relation;
+        $listInvited = Relation::getInvited($this->relation->received_id);
+        $friendList  = Relation::getFriends($this->relation->received_id);
+        $relation    = $this->relation['status'] == 'delete' ? "stranger" : $this->relation;
+
         return [
-            'relation'    => $relation,
+            "listInvited" => $listInvited,
+            "friendList"  => $friendList,
+            "relation"    => $relation,
         ];
     }
 }
