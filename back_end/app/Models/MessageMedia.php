@@ -8,6 +8,9 @@ class MessageMedia extends Model
 {
     protected $fillable = [
         'path',
+        'message_id',
+        'type',
+
     ];
 
     // ----------- Relation --------------
