@@ -23,7 +23,7 @@
         <icon-nav :isActive="{ 'is-active': $route.name === 'favorite' }"><i class="fa-solid fa-heart"></i></icon-nav>
       </router-link>
       <router-link :to="{ name: 'conversation' }">
-        <icon-nav :isActive="{ 'is-active': $route.name === 'conversation' }">
+        <icon-nav :isActive="{ 'is-active': $route.matched.some(r => r.name === 'conversation') }">
           <i class="fa-solid fa-message"></i>
         </icon-nav>
       </router-link>

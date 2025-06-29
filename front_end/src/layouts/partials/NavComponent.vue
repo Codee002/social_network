@@ -41,6 +41,10 @@ defineProps({
 
 .nav-group :deep(p) {
   display: contents;
+  white-space: nowrap; /* Ngăn chặn xuống dòng */
+  overflow: hidden; /* Ẩn phần vượt quá */
+  text-overflow: ellipsis; /* Thêm dấu ... khi nội dung bị cắt */
+  max-width: 200px;
   /* font-weight: 350; */
 }
 

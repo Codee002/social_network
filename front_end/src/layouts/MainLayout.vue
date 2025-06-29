@@ -2,7 +2,7 @@
   <div v-if="owner" style="height: 100%">
     <header-component :user="owner"></header-component>
     <div style="padding-top: 3.5rem"></div>
-    <router-view></router-view>
+    <router-view :owner='owner'></router-view>
   </div>
   <div class="spinner-border" v-else style="margin: auto"></div>
 </template>
