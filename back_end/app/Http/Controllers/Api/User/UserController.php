@@ -21,6 +21,7 @@ class UserController extends Controller
     public function getUser(Request $request, String $id)
     {
         $user = User::find($id)->load("profile");
+        // $user['friends'] = Relation::getFriends($user['id']);
         return response()->json([
             "success" => true,
             'message' => "Lấy thông tin user thành công",
@@ -30,18 +31,21 @@ class UserController extends Controller
 
     public function getFriends(String $id)
     {
-        $user = User::find($id)->load("sendRelations");
-        // $user->getFriends();
-        // dd($user->sendRelations);
-        // dd($user->sendRelations()
-        //         ->where("type", 'friend')
-        //         ->where("status", "completed")
-        //         ->get());
+        $friendList = Relation::getFriends($id);
         return response()->json([
-            "data" => $user->sendRelations()
-                ->where("type", 'friend')
-                ->where("status", "completed")
-                ->get(),
+            "success"    => true,
+            "message"    => "Lấy bạn bè thành công",
+            "friendList" => $friendList,
+        ], 200);
+    }
+
+    public function getInvited(String $id)
+    {
+        $listInvited = Relation::getInvited($id);
+        return response()->json([
+            "success"     => true,
+            "message"     => "Lấy lời mời kết bạn thành công",
+            "listInvited" => $listInvited,
         ], 200);
     }
 
@@ -60,4 +64,34 @@ class UserController extends Controller
         ], 200);
 
     }
+
+    public function getPosts(Request $request, $userId)
+    {
+        $user = User::find($userId);
+
+        $posts = $user->posts()
+            ->with("medias")->orderBy("created_at", 'desc')
+            ->with('user.profile')->get();
+
+        $views  = [];
+        $likes  = [];
+        $shares = [];
+        foreach ($posts as $post) {
+            $likes[$post->id]    = $post->likes()->pluck("user_id")->all();
+            $views[$post->id]    = $post->watches()->pluck("user_id")->all();
+            $comments[$post->id] = $post->comments()->pluck("user_id")->all();
+            $shares[$post->id]   = $post->shares()->pluck("user_id")->all();
+        }
+
+        return response()->json([
+            "success"  => true,
+            "message"  => 'Lấy bài viết thành công',
+            "posts"    => $posts,
+            "views"    => $views,
+            "likes"    => $likes,
+            "comments" => $comments,
+            "shares"   => $shares,
+        ], 200);
+    }
+
 }
