@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Events\NewCommentRequest;
 use App\Events\NewLikeRequest;
+use App\Events\NewNotificationEvent;
 use App\Events\NewPostRequest;
 use App\Events\NewShareRequest;
 use App\Events\NewViewRequest;
@@ -12,6 +13,7 @@ use App\Http\Requests\StorePostRequest;
 use App\Models\Comment;
 use App\Models\CommentMedia;
 use App\Models\Like;
+use App\Models\Notification;
 use App\Models\Post;
 use App\Models\PostMedia;
 use App\Models\Share;
@@ -121,6 +123,13 @@ class PostController extends Controller
                 return $comment->load('medias');
             });
 
+            // Tạo thông báo
+            $contentNotif = "đã bình luận bài viết của bạn";
+            $typeNotif    = "post";
+            $notification = Notification::createNotification($result['user_id'], $result->post->user_id,
+                $contentNotif, $typeNotif, $result['post_id']);
+            broadcast(new NewNotificationEvent($notification))->toOthers();
+
             broadcast(new NewCommentRequest($request['post_id'], $result))->toOthers();
             return response()->json([
                 'success' => true,
@@ -160,6 +169,14 @@ class PostController extends Controller
 
                 return $newLike ?? $temp;
             });
+
+            // Tạo thông báo
+            $contentNotif = "đã thích bài viết của bạn";
+            $typeNotif    = "post";
+            $notification = Notification::createNotification($result['user_id'], $result->post->user_id,
+                $contentNotif, $typeNotif, $result['post_id']);
+            broadcast(new NewNotificationEvent($notification))->toOthers();
+
             broadcast(new NewLikeRequest($request['post_id'], $result))->toOthers();
 
             return response()->json([
@@ -226,6 +243,14 @@ class PostController extends Controller
                 ]);
                 return $share;
             });
+
+            // Tạo thông báo
+            $contentNotif = "đã chia sẻ bài viết của bạn";
+            $typeNotif    = "post";
+            $notification = Notification::createNotification($result['user_id'], $result->post->user_id,
+                $contentNotif, $typeNotif, $result['post_id']);
+            broadcast(new NewNotificationEvent($notification))->toOthers();
+
             broadcast(new NewShareRequest($request['post_id'], $result))->toOthers();
 
             return response()->json([
