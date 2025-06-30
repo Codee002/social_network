@@ -1,10 +1,11 @@
 <?php
 namespace App\Http\Controllers\Api\User;
 
-use App\Events\NewRelationRequest;
+use App\Events\NewNotificationEvent;
 use App\Events\ReceiveRelationRequest;
 use App\Events\SendRelationRequest;
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,14 @@ class RelationController extends Controller
             $result = DB::transaction(function () use ($request) {
                 $request['sender_id'] = $request->user()->id;
                 $relation             = Relation::query()->create($request->all());
-                broadcast(new NewRelationRequest($request->user(), $relation))->toOthers();
+
+                // Tạo thông báo
+                $contentNotif = "đã gủi lời mời kết bạn";
+                $typeNotif    = "relation";
+                $notification = Notification::createNotification($request['sender_id'], $request['received_id'],
+                $contentNotif, $typeNotif, $relation->id);
+                broadcast(new NewNotificationEvent($notification))->toOthers();
+
                 broadcast(new ReceiveRelationRequest($relation))->toOthers();
                 broadcast(new SendRelationRequest($relation))->toOthers();
                 return $relation;
@@ -53,7 +61,7 @@ class RelationController extends Controller
                 } else {
                     $relation->update($request->all());
                 }
-                broadcast(new NewRelationRequest($request->user(), $tempRelation))->toOthers();
+                // broadcast(new NewRelationRequest($request->user(), $tempRelation))->toOthers();
                 broadcast(new ReceiveRelationRequest($tempRelation))->toOthers();
                 broadcast(new SendRelationRequest($tempRelation))->toOthers();
                 return $tempRelation;
