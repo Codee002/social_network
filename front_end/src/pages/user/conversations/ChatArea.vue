@@ -6,10 +6,10 @@
     <div class="chat-area" v-if="conversation">
       <div class="chat-header">
         <div class="d-flex align-items-center">
-          <img class="avatar" :src="converInfo.avatar" alt="" />
+          <img class="avatar" :src="thumbs[conversation.id]" alt="" />
           <div class="info">
             <p class="name">{{ converInfo.name }}</p>
-            <p class="time-active">Hoat dong 1h truoc</p>
+            <!-- <p class="time-active">Hoat dong 1h truoc</p> -->
           </div>
         </div>
         <div class="chat-option">
@@ -27,16 +27,36 @@
           <div class="is-user" v-if="message.user_id != owner.id">
             <router-link :to="{ name: 'profile', params: { user_id: message.user_id } }">
               <div class="chat-avatar">
-                <img class="avatar" :src="srcAvtUser" alt="" />
+                <img
+                  class="avatar"
+                  :src="
+                    message.user.profile.avatar
+                      ? $backendBaseUrl + message.user.profile.avatar
+                      : require('@/assets/images/avatar/default.jpg')
+                  "
+                  alt=""
+                />
               </div>
             </router-link>
 
-            <div>
+            <div class="" style="width: 100%">
+              <div v-if="conversation.type == 'group'" class="text-start mt-2 ps-2">
+                <span style="font-size: 0.8rem; font-weight: 500">
+                  {{ message.userName }}
+                </span>
+              </div>
               <!-- Ảnh và video -->
-              <div v-if="message.medias.length != 0" class="mt-2 d-flex flex-wrap align-items-end" style="width: 60%">
+              <div
+                v-if="message.medias.length != 0"
+                class="d-flex flex-wrap align-items-end"
+                :class="{ 'mt-2': conversation.type == 'friend' }"
+                style="width: 60%"
+              >
                 <div v-for="(media, index) in message.medias" :key="index" class="chat-message__media">
-                  <img v-if="media.type == 'image'" :src="$backendBaseUrl + media.path" />
-                  <video v-else-if="media.type == 'video'" :src="$backendBaseUrl + media.path" controls />
+                  <a :href="$backendBaseUrl + media.path">
+                    <img v-if="media.type == 'image'" :src="$backendBaseUrl + media.path" />
+                    <video v-else-if="media.type == 'video'" :src="$backendBaseUrl + media.path" controls />
+                  </a>
                 </div>
               </div>
               <div class="chat-message" v-if="message.content != null">
@@ -49,7 +69,7 @@
 
           <!-- Người dùng hiện tại -->
           <div class="is-owner" v-if="message.user_id == owner.id">
-            <div class="d-flex flex-column align-items-end">
+            <div class="d-flex flex-column align-items-end" style="width: 100%">
               <!-- Ảnh và video -->
               <div
                 v-if="message.medias.length != 0"
@@ -57,8 +77,10 @@
                 style="width: 60%"
               >
                 <div v-for="(media, index) in message.medias" :key="index" class="chat-message__media">
-                  <img v-if="media.type == 'image'" :src="$backendBaseUrl + media.path" />
-                  <video v-else-if="media.type == 'video'" :src="$backendBaseUrl + media.path" controls />
+                  <a :href="$backendBaseUrl + media.path">
+                    <img v-if="media.type == 'image'" :src="$backendBaseUrl + media.path" />
+                    <video v-else-if="media.type == 'video'" :src="$backendBaseUrl + media.path" controls />
+                  </a>
                 </div>
               </div>
 
@@ -127,17 +149,20 @@
 
 
 <script setup>
-import auth from '@/utils/auth'
 import axios from 'axios'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch, defineProps } from 'vue'
 import { useRoute } from 'vue-router'
 import { differenceInMinutes, format } from 'date-fns'
+
+const props = defineProps({
+  thumbs: {},
+  owner: {},
+})
 
 const content = ref('')
 const route = useRoute()
 const conversationId = computed(() => route.params.conversation_id)
 const conversation = ref()
-const owner = ref()
 const loading = ref(true)
 const converInfo = computed(() => getConverInfo())
 const fileInput = ref()
@@ -146,14 +171,13 @@ const uploadProgress = ref(0)
 
 onMounted(async () => {
   try {
-    owner.value = await auth.getOwner()
     await fetchMessages()
     scrollToBottom()
   } catch (error) {
     console.log('Không lấy được thông tin!', error)
   }
 
-  window.Echo.private(`user.${owner.value.id}`)
+  window.Echo.private(`user.${props.owner.id}`)
     .listen('.conversation.received', (e) => {
       if (e.message.conversation_id == conversationId.value) {
         conversation.value.messages.unshift(e.message)
@@ -163,7 +187,7 @@ onMounted(async () => {
       console.error('Echo error:', error)
     })
 
-  window.Echo.private(`user.${owner.value.id}`)
+  window.Echo.private(`user.${props.owner.id}`)
     .listen('.conversation.sender', (e) => {
       if (e.message.conversation_id == conversationId.value) {
         conversation.value.messages.unshift(e.message)
@@ -179,16 +203,12 @@ watch(conversationId, async (newId) => {
   if (newId) await fetchMessages()
 })
 
-const srcAvtUser = computed(() => {
-  return require('@/assets/images/avatar/default.jpg')
-})
-
 // Lấy thông tin cuộc trò chuyện
 function getConverInfo() {
   let avatar = ''
   let name = ''
   if (conversation.value.type == 'friend') {
-    let users = conversation.value.users.filter((user) => user.id != owner.value.id)
+    let users = conversation.value.users.filter((user) => user.id != props.owner.id)
     avatar = users[0].profile.avatar ?? require('@/assets/images/avatar/default.jpg')
     name = users[0].profile.name
   } else {
@@ -220,7 +240,7 @@ async function sendMessage() {
   try {
     const formData = new FormData()
     formData.append('content', content.value)
-    formData.append('user_id', owner.value.id)
+    formData.append('user_id', props.owner.id)
     formData.append('conversation_id', conversation.value.id)
 
     // Nếu có media
