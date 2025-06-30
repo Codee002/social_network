@@ -119,9 +119,14 @@ class User extends Authenticatable
 
     }
 
-    public function notifications()
+    public function sendNotifications()
     {
-        return $this->hasMany(Notification::class);
+        return $this->hasMany(Notification::class, 'sender_id', 'id');
+    }
+
+    public function receivedNotifications()
+    {
+        return $this->hasMany(Notification::class, 'received_id', 'id');
     }
     // ------------- My func ------------
     public function isNotBanned()

@@ -2,9 +2,12 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\Relation;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -92,6 +95,70 @@ class UserController extends Controller
             "comments" => $comments,
             "shares"   => $shares,
         ], 200);
+    }
+
+    public function getNotifications($userId)
+    {
+        $user          = User::find($userId);
+        $notifications = $user->receivedNotifications()->orderBy("created_at", 'desc')->get();
+
+        foreach ($notifications as $noti) {
+            $noti['userName']   = $noti->sender->profile->name;
+            $noti['userAvatar'] = $noti->sender->profile->avatar;
+        }
+
+        return response()->json([
+            "success"       => true,
+            "message"       => 'Lấy thông báo thành công',
+            "notifications" => $notifications,
+        ], 200);
+    }
+
+    public function readNotification($notificationId)
+    {
+        $notification = Notification::find($notificationId);
+        $notification->update([
+            'status' => "seen",
+        ]);
+
+        return response()->json([
+            "success"      => true,
+            "message"      => 'Đọc thông báo thành công',
+            "notification" => $notification,
+        ], 200);
+    }
+
+    public function storeAvatar(Request $request)
+    {
+        try {
+            $request->validate([
+                'avatar' => 'required|file|mimes:jpg,jpeg,png',
+            ]);
+
+            $user = $request->user();
+            if ($request->has('avatar')) {
+                $path = $request['avatar']->store("user/avatars", 'public');
+                $url  = Storage::url($path);
+            }
+
+            $user->profile()->update([
+                'avatar' => $url,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật avatar thành công',
+                'user'    => $user,
+            ], 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors'  => $e->errors(),
+            ], 422);
+        }
+
     }
 
 }
