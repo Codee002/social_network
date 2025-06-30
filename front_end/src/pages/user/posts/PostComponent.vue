@@ -4,7 +4,15 @@
     <div class="post__header" ref="headerPostElementElement">
       <div class="post__author">
         <router-link :to="{ name: 'profile', params: { user_id: post.user_id } }">
-          <img class="post__avt rounded-circle" :src="require('@/assets/images/avatar/default.jpg')" alt="" />
+          <img
+            class="post__avt rounded-circle"
+            :src="
+              post.user.profile.avatar
+                ? $backendBaseUrl + post.user.profile.avatar
+                : require('@/assets/images/avatar/default.jpg')
+            "
+            alt=""
+          />
         </router-link>
         <div class="post__detail">
           <router-link :to="{ name: 'profile', params: { user_id: post.user_id } }" class="post__name">
@@ -143,7 +151,11 @@
               <router-link :to="{ name: profile, params: { user_id: owner.id } }">
                 <img
                   class="comment__avt post__avt rounded-circle"
-                  :src="require('@/assets/images/avatar/default.jpg')"
+                  :src="
+                    owner.profile.avatar
+                      ? $backendBaseUrl + post.user.profile.avatar
+                      : require('@/assets/images/avatar/default.jpg')
+                  "
                   alt=""
                 />
               </router-link>
@@ -178,7 +190,11 @@
             <router-link :to="{ name: profile, params: { user_id: comment.user_id } }">
               <img
                 class="comment__avt post__avt rounded-circle"
-                :src="comment.user_avatar ?? require('@/assets/images/avatar/default.jpg')"
+                :src="
+                  comment.user_avatar
+                    ? $backendBaseUrl + comment.user_avatar
+                    : require('@/assets/images/avatar/default.jpg')
+                "
                 alt=""
               />
             </router-link>
