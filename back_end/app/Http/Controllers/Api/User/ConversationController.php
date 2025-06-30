@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Events\ReceiveMessageRequest;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreConversationRequest;
 use App\Http\Requests\StoreMessageRequest;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -84,6 +85,10 @@ class ConversationController extends Controller
             $conversation             = Conversation::find($conversationId);
             $conversation['users']    = $conversation->users()->with('profile')->get();
             $conversation['messages'] = $conversation->messages()->with('medias')->orderBy("created_at", 'desc')->get();
+
+            foreach ($conversation['messages'] as $message) {
+                $message['userName'] = $message->user->profile->name;
+            }
             return response()->json([
                 'success'      => true,
                 'message'      => "Lấy danh sách hội thoại thành công",
@@ -142,6 +147,45 @@ class ConversationController extends Controller
             return response()->json([
                 "success" => false,
                 'message' => "Có lỗi gửi tin nhắn",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function createConversation(StoreConversationRequest $request)
+    {
+        try {
+            $result = DB::transaction(function () use ($request) {
+                $url = null;
+
+                if ($request->has('thumb')) {
+                    $path = $request['thumb']->store("conversations", 'public');
+                    $url  = Storage::url($path);
+                }
+
+                $conversation = Conversation::query()->create([
+                    'name'  => $request['name'],
+                    'type'  => $request['type'],
+                    'thumb' => $url,
+                ]);
+
+                foreach ($request['user'] as $index => $user) {
+                    $conversation->addUser($user, $request['role'][$index], now(), $request['has_created'][$index]);
+                }
+
+                return $conversation;
+            });
+
+            return response()->json([
+                'success'      => true,
+                'message'      => "Tạo cuộc trò chuyện thành công",
+                'conversation' => $result,
+            ]);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi tạo cuộc trò chuyện",
                 "data"    => $th->getMessage(),
             ], 400);
         }
