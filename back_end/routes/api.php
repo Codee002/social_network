@@ -28,6 +28,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/getPosts/{id}', [UserController::class, 'getPosts']);
     Route::get('/getFriends/{id}', [UserController::class, 'getFriends']);
     Route::get('/getInvited/{id}', [UserController::class, 'getInvited']);
+    Route::get('/getNotifications/{id}', [UserController::class, 'getNotifications']);
+    Route::post('/readNotification/{id}', [UserController::class, 'readNotification']);
+    Route::post('/storeAvatar', [UserController::class, 'storeAvatar']);
 
     // Relation
     Route::post('/relation/addRelation/', [RelationController::class, 'addRelation']);
@@ -38,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get("conversation/get", [ConversationController::class, "getConversation"]);
     Route::get("conversation/message/{conversation_id}", [ConversationController::class, "getMessage"]);
     Route::post("conversation/sendMessage", [ConversationController::class, "sendMessage"]);
+    Route::post("conversation/createConversation", [ConversationController::class, "createConversation"]);
 
     // Post
     Route::post("post/store", [PostController::class, "store"]);
