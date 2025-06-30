@@ -47,7 +47,14 @@
         <div class="profile__card__content row" v-if="listFriend.length != 0">
           <div class="col-4 p-1" v-for="(friend, index) in listFriend" :key="index">
             <router-link :to="{ name: 'profile', params: { user_id: user.id } }">
-              <img :src="friend.user.profile.avatar ?? require('@/assets/images/avatar/default.jpg')" alt="" />
+              <img
+                :src="
+                  friend.user.profile.avatar
+                    ? $backendBaseUrl + friend.user.profile.avatar
+                    : require('@/assets/images/avatar/default.jpg')
+                "
+                alt=""
+              />
               <div class="profile__card__txt text-center">{{ friend.user.profile.name }}</div>
             </router-link>
           </div>

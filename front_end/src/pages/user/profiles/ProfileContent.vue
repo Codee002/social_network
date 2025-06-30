@@ -2,8 +2,8 @@
   <div class="profile__content d-flex justify-content-center">
     <interview-component @changeMode="changeMode" :relationStatus="relationStatus" :user="user"></interview-component>
     <div class="profile__post">
-      <filter-component v-if="relationStatus == 'owner'"></filter-component>
-      <action-component v-if="relationStatus == 'owner'"></action-component>
+      <filter-component v-if="relationStatus == 'owner'" :user="user"></filter-component>
+      <action-component v-if="relationStatus == 'owner'" :user="user"></action-component>
       <div class="post__container" v-if="posts">
         <post-component
           class="mb-3"

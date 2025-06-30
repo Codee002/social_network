@@ -1,7 +1,12 @@
 <template>
   <div class="profile__overview">
     <div class="profile__avt">
-      <img :src="srcAvtUser" alt="" />
+      <img
+        :src="
+          user.profile.avatar ? $backendBaseUrl + user.profile.avatar : require('@/assets/images/avatar/default.jpg')
+        "
+        alt=""
+      />
       <button data-bs-toggle="modal" data-bs-target="#modal__upload--avt" v-if="relationStatus == 'owner'">
         <i class="fa-solid fa-camera"></i>
       </button>
@@ -14,22 +19,60 @@
         v-if="relationStatus == 'owner'"
       >
         <div class="modal-dialog modal-dialog-centered">
-          <form class="modal-content" action="/profile/avatar" method="post" enctype="multipart/form-data">
+          <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title" id="modal-label">Ảnh đại diện</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-              <div class="upload__preview--avt">
-                <img class="rounded-circle" :src="srcAvtUser" alt="" />
-                <input class="upload__avt form-control" type="file" name="avatar" accept="image/*" />
+              <div class="upload__preview--avt d-flex flex-column align-items-center">
+                <img
+                  v-if="mediaFiles.length == 0"
+                  class="rounded-circle"
+                  :src="
+                    user.profile.avatar
+                      ? $backendBaseUrl + user.profile.avatar
+                      : require('@/assets/images/avatar/default.jpg')
+                  "
+                  alt=""
+                />
+                <div v-if="mediaFiles.length != 0" class="">
+                  <div
+                    v-for="(file, index) in mediaFiles"
+                    :key="index"
+                    class="media-item media-preview"
+                    style="width: unset"
+                  >
+                    <i @click="removeFile(index)" class="fa-solid fa-xmark media__deleteBtn"></i>
+                    <img :src="file.url" />
+                  </div>
+                </div>
+                <div class="post__item post__item--image" @click="triggerFileInput">
+                  <i class="fa-solid fa-images text-success me-2"></i>
+                  <span>Hình ảnh</span>
+                </div>
+                <input
+                  class="upload__avt form-control d-none"
+                  @change="handleFilesChange"
+                  type="file"
+                  accept="image/*"
+                  ref="fileInput"
+                />
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="upload__btn btn upload__btn--secondary upload__reset">Hủy</button>
-              <button type="submit" class="upload__btn btn upload__btn--primary upload__save hide">Cập nhật</button>
+              <button type="button" class="upload__btn btn upload__btn--secondary" data-bs-dismiss="modal">Hủy</button>
+              <button
+                type="submit"
+                class="upload__btn btn upload__btn--primary"
+                data-bs-dismiss="modal"
+                @click="storeAvatar"
+                :disabled="mediaFiles.length == 0"
+              >
+                Cập nhật
+              </button>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
@@ -37,11 +80,6 @@
       <h1 class="profile__name">{{ user.profile.name }}</h1>
       <div class="profile__preview">
         <div class="profile__count profile__count--friend" href="#">2 người bạn</div>
-        <a class="profile__list profile__list--friend">
-          <div class="icon-box"><i class="bi bi-three-dots"></i></div>
-          <img class="profile__node profile__node--friend" :src="srcAvtUser" alt="" />
-          <img class="profile__node profile__node--friend" :src="srcAvtUser" alt="" />
-        </a>
       </div>
     </div>
     <div class="profile__action">
@@ -155,10 +193,12 @@
 <script setup>
 import router from '@/router'
 import axios from 'axios'
-import { computed, defineProps, defineEmits, ref } from 'vue'
+import { defineProps, defineEmits, ref } from 'vue'
+import { useToast } from 'vue-toastification'
 
+const toast = useToast()
 const conversation = ref()
-const props = defineProps({
+defineProps({
   user: {
     type: Object,
     default: null,
@@ -173,15 +213,10 @@ const props = defineProps({
   },
 })
 
-const srcAvtUser = computed(() => {
-  if (!props.user.profile.avatar) {
-    return require('@/assets/images/avatar/default.jpg')
-  }
-  return props.user.profile.avatar
-})
-
+// Đổi avatar
+const mediaFiles = ref([])
+const fileInput = ref([])
 const emit = defineEmits(['addRelation', 'changeRelation'])
-
 
 async function startChat(userId) {
   try {
@@ -202,6 +237,48 @@ function addRelation(type, status) {
 function changeRelation(relationId, type, status) {
   emit('changeRelation', relationId, type, status)
 }
+
+// ---------------------Đổi avatar ---------------------
+const handleFilesChange = (event) => {
+  mediaFiles.value = []
+  const files = Array.from(event.target.files)
+  files.forEach((file) => {
+    const url = URL.createObjectURL(file)
+    mediaFiles.value.push({
+      file,
+      url,
+      type: file.type,
+    })
+  })
+}
+
+const triggerFileInput = () => {
+  fileInput.value.click()
+}
+
+const removeFile = (index) => {
+  mediaFiles.value.splice(index, 1)
+}
+
+async function storeAvatar() {
+  if (mediaFiles.value.length == 0) return
+  try {
+    let formData = new FormData()
+    formData.append('avatar', mediaFiles.value[0].file)
+    await axios.post(`storeAvatar`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    toast.success('Đổi ảnh đại diện thành công', {
+      position: 'bottom-right',
+    })
+  } catch (error) {
+    console.log('Gửi tin nhắn thất bại!', error)
+  }
+}
+
+// -----------------------------------------
 </script>
 
 <style scoped>
@@ -341,5 +418,20 @@ function changeRelation(relationId, type, status) {
 .upload__btn--primary {
   background-color: var(--main1-color);
   color: #fff;
+}
+
+.post__item {
+  display: flex;
+  width: 50%;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0.5rem;
+  height: 3rem;
+  position: relative;
+  cursor: pointer;
+}
+
+.post__item:hover {
+  background-color: var(--hover-color);
 }
 </style>

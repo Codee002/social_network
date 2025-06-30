@@ -4,7 +4,13 @@
   <div class="post-card">
     <div class="post__header">
       <div class="post__author">
-        <img class="post__avt rounded-circle" :src="require('@/assets/images/avatar/default.jpg')" alt="" />
+        <img
+          class="post__avt rounded-circle"
+          :src="
+            user.profile.avatar ? $backendBaseUrl + user.profile.avatar : require('@/assets/images/avatar/default.jpg')
+          "
+          alt=""
+        />
         <!-- Hiển thị tiến trình -->
         <div v-if="uploadProgress > 0 && uploadProgress < 100" class="upload-bar">
           <div class="progress" :style="{ width: uploadProgress + '%' }"></div>
@@ -44,7 +50,6 @@
       <div class="modal-dialog modal-dialog-centered">
         <form @submit.prevent="onSubmit" class="modal-content">
           <div class="modal-header">
-
             <h5 class="modal-title" id="modal-label">Tạo bài viết</h5>
             <button data-v-82489926="" type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
@@ -52,11 +57,19 @@
             <div class="upload__author">
               <div class="post__header">
                 <div class="post__author">
-                  <a href="/profile/18">
-                    <img class="post__avt rounded-circle" :src="require('@/assets/images/avatar/default.jpg')" alt="" />
+                  <a>
+                    <img
+                      class="post__avt rounded-circle"
+                      :src="
+                        user.profile.avatar
+                          ? $backendBaseUrl + user.profile.avatar
+                          : require('@/assets/images/avatar/default.jpg')
+                      "
+                      alt=""
+                    />
                   </a>
                   <div class="post__detail">
-                    <a href="/profile/18" class="post__name">Trần Thanh Phúc</a>
+                    <a class="post__name">Trần Thanh Phúc</a>
                     <div class="post__privacy">
                       <i class="fa-solid fa-earth-americas" :class="{ 'd-none': form.rule != 'public' }"></i>
                       <i class="fa-solid fa-user" :class="{ 'd-none': form.rule != 'friend' }"></i>
@@ -123,9 +136,12 @@
 
 <script setup>
 import axios from 'axios'
-import { reactive, ref } from 'vue'
+import { reactive, ref, defineProps } from 'vue'
 import { useToast } from 'vue-toastification'
 
+defineProps({
+  user: {},
+})
 
 const fileInput = ref()
 const mediaFiles = ref([])
@@ -314,7 +330,6 @@ const onSubmit = async () => {
   font-weight: 600;
   border: none;
 }
-
 
 #modal__upload--post .modal-body {
   margin-top: var(--header-heigh);
