@@ -19,7 +19,10 @@
         <router-link :to="{ name: profile, params: { user_id: relation.user.id } }" :key="relation.id">
           <div class="friendInvite__main__info">
             <img
-              :src="relation.user.profile.avatar ?? require('@/assets/images/avatar/default.jpg')"
+              :src="relation.user.profile.avatar
+                  ? $backendBaseUrl + relation.user.profile.avatar
+                  : require('@/assets/images/avatar/default.jpg')
+              "
               class="friendInvite__main__info__avt"
               alt=""
             />
@@ -66,7 +69,6 @@ function changeMode(change) {
 function changeRelation(relationId, type, status) {
   emit('changeRelation', relationId, type, status)
 }
-
 </script>
 
 <style scoped>

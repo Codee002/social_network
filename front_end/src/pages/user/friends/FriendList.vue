@@ -34,7 +34,11 @@
         <div class="friendList__main__info">
           <router-link :to="{ name: profile, params: { user_id: friend.user.id } }" class="d-flex">
             <img
-              :src="friend.user.profile.avatar ?? require('@/assets/images/avatar/default.jpg')"
+              :src="
+                friend.user.profile.avatar
+                  ? $backendBaseUrl + friend.user.profile.avatar
+                  : require('@/assets/images/avatar/default.jpg')
+              "
               class="friendList__main__info__avt"
               alt=""
             />
