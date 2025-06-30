@@ -55,6 +55,8 @@ class SendMessageRequest implements ShouldBroadcastNow
             $conversation['message'] = $conversation->messages()->orderBy("id", 'desc')->first();
         }
 
+        $this->message['userName'] = $this->message->user->profile->name;
+
         return [
             'message'       => $this->message,
             'conversations' => $conversations,
