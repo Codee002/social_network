@@ -22,21 +22,94 @@
       <router-link :to="{ name: 'favorite' }">
         <icon-nav :isActive="{ 'is-active': $route.name === 'favorite' }"><i class="fa-solid fa-heart"></i></icon-nav>
       </router-link>
-      <router-link :to="{ name: 'conversation' }">
-        <icon-nav :isActive="{ 'is-active': $route.matched.some(r => r.name === 'conversation') }">
+      <router-link style="position: relative" :owner="user" :to="{ name: 'conversation' }">
+        <icon-nav :isActive="{ 'is-active': $route.matched.some((r) => r.name === 'conversation') }">
           <i class="fa-solid fa-message"></i>
         </icon-nav>
+        <span class="notification-dot" style="top: 0.9rem; right: 2rem"></span>
       </router-link>
     </div>
 
-    <div class="info-group dropdown-toggle" @click="toggleDropdown" style="height: 100%; width: 100em">
-      <img class="avatar" :src="srcAvtUser" alt="" />
+    <!-- User Nav -->
+    <div class="info-group dropdown-toggle" style="height: 100%; width: 100em">
+      <!-- Notification -->
+      <div class="notifi__wrapper">
+        <i class="fa-solid fa-bell" @click="toggleNotification"></i>
+        <span class="notification-dot" v-if="notifications.some((notif) => notif.status == 'received')"></span>
+      </div>
 
-      <ul class="dropdown-menu show" v-if="isDropdownOpen && user">
+      <ul class="dropdown-menu dropdown__notification show" v-if="isNotificationOpen && user">
+        <div class="d-flex justify-content-between">
+          <h5 style="font-weight: 700">Thông báo</h5>
+          <router-link class="notification__all">Xem tất cả</router-link>
+        </div>
+        <div>
+          <hr />
+          <div v-if="notifications.length != 0">
+            <div
+              v-for="notification in notifications"
+              :key="notification.id"
+              class="d-flex"
+              style="position: relative; cursor: pointer"
+              @click="readNotification(notification)"
+            >
+              <span
+                class="notification-dot"
+                style="top: 3.4rem; right: 0.5rem"
+                v-if="notification.status == 'received'"
+              ></span>
+              <nav-component>
+                <template v-slot:icon>
+                  <img
+                    class="avatar"
+                    :src="
+                      notification.userAvatar
+                        ? $backendBaseUrl + notification.userAvatar
+                        : require('@/assets/images/avatar/default.jpg')
+                    "
+                    alt=""
+                  />
+                </template>
+                <template v-slot:des>{{ notification.userName }}</template>
+                <template v-slot:message>
+                  <p style="font-weight: 350">{{ notification.content }}</p>
+                  <!-- <br> -->
+                </template>
+                <template v-slot:time>
+                  <br />
+                  <p style="font-weight: 350; font-size: 0.9rem">{{ $dayjs(notification.created_at).fromNow() }}</p>
+                </template>
+              </nav-component>
+            </div>
+          </div>
+          <div v-else class="text-center">
+            <span>Bạn chưa có thông báo nào</span>
+          </div>
+        </div>
+      </ul>
+
+      <!-- Setting -->
+      <img
+        class="avatar"
+        :src="
+          user.profile.avatar ? $backendBaseUrl + user.profile.avatar : require('@/assets/images/avatar/default.jpg')
+        "
+        @click="toggleSetting"
+        alt=""
+      />
+      <ul class="dropdown-menu show" v-if="isSettingOpen && user">
         <router-link :to="{ name: 'profile', params: { user_id: user.id } }" class="d-flex">
           <nav-component>
             <template v-slot:icon>
-              <img class="avatar" :src="srcAvtUser" alt="" />
+              <img
+                class="avatar"
+                :src="
+                  user.profile.avatar
+                    ? $backendBaseUrl + user.profile.avatar
+                    : require('@/assets/images/avatar/default.jpg')
+                "
+                alt=""
+              />
             </template>
             <template v-slot:des>{{ user.profile.name }}</template>
           </nav-component>
@@ -78,8 +151,8 @@ import router from '@/router'
 const field = ref('search')
 const placeholder = ref('Tìm kiếm')
 const srcLogoImage = ref(require('@/assets/images/general/logo.png'))
-const srcAvtUser = ref(require('@/assets/images/avatar/default.jpg'))
-const isDropdownOpen = ref(false)
+const isSettingOpen = ref(false)
+const isNotificationOpen = ref(false)
 
 // ----------------------- Function -----------------------
 
@@ -89,12 +162,40 @@ defineProps({
     require: true,
     default: null,
   },
+  notifications: {},
 })
 
-function toggleDropdown() {
-  isDropdownOpen.value = !isDropdownOpen.value
+// Mở setting
+function toggleSetting() {
+  isSettingOpen.value = !isSettingOpen.value
+  isNotificationOpen.value = false
 }
 
+// Mở thông báo
+function toggleNotification() {
+  isNotificationOpen.value = !isNotificationOpen.value
+  isSettingOpen.value = false
+}
+
+// Đọc thông báo
+async function readNotification(notification) {
+  notification.status = 'seen'
+
+  try {
+    axios.post(`/readNotification/${notification.id}`)
+  } catch (error) {
+    console.log('Đã xảy ra lỗi khi đọc thông báo!', error)
+  }
+
+  if (notification.type == 'relation') {
+    router.push({ name: 'friend' })
+  } else if (notification.type == 'post') {
+    router.push({ name: 'post', params: { post_id: notification.url_id } })
+  }
+
+  isNotificationOpen.value = false
+}
+// Đăng xuất
 async function logout() {
   try {
     const res = await axios.post(`/auth/logout`, {})
@@ -150,6 +251,18 @@ header .avatar {
   margin: 1rem;
 }
 
+.info-group i {
+  cursor: pointer;
+  font-size: 1.4rem;
+  margin-right: 1rem;
+  transition: 0.2s;
+  color: v-bind('isNotificationOpen ? "var(--main1-color)" : "var(--font-color)"');
+}
+
+.info-group i:hover {
+  color: var(--main1-color);
+}
+
 .dropdown-menu {
   background-color: var(--main-extra-bg);
   width: 22rem;
@@ -164,5 +277,38 @@ header .avatar {
 
 .dropdown-toggle::after {
   content: unset !important;
+}
+
+.dropdown__notification {
+  overflow-y: auto;
+  min-height: 7rem;
+  max-height: 35rem;
+  padding: 1rem;
+}
+
+.dropdown__notification .notification__all {
+  color: var(--main1-color);
+}
+
+.notifi__wrapper {
+  position: relative;
+  width: fit-content;
+}
+
+.notification-dot {
+  position: absolute;
+  width: 0.4rem;
+  height: 0.4rem;
+  right: 1.1rem;
+  color: red;
+  background-color: red;
+  border-radius: 50%;
+}
+
+.notification-count {
+  position: absolute;
+  color: red;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 </style>
