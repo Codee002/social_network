@@ -3,7 +3,9 @@
     <slot name="icon"></slot>
     <slot name="des"></slot>
     <br />
-    <slot name="message" style="font-weight: 350"></slot>
+    <slot name="message"></slot>
+    <slot name="time">
+    </slot>
   </div>
 </template>
 
@@ -35,7 +37,7 @@ defineProps({
 }
 
 .nav-group :deep(img) {
-  width: 13%;
+  width: 13% !important;
   margin-right: 1rem;
 }
 
