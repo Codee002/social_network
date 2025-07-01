@@ -13,8 +13,8 @@
           </div>
         </div>
         <div class="chat-option">
-          <i class="fa-solid fa-phone"></i>
-          <i class="fa-solid fa-video"></i>
+          <i @click="startCall(conversation.id)" class="fa-solid fa-phone"></i>
+          <i @click="startCall(conversation.id)" class="fa-solid fa-video"></i>
           <i class="fa-solid fa-circle-info"></i>
         </div>
       </div>
@@ -153,6 +153,7 @@ import axios from 'axios'
 import { computed, onMounted, ref, watch, defineProps } from 'vue'
 import { useRoute } from 'vue-router'
 import { differenceInMinutes, format } from 'date-fns'
+// import AgoraRTC from 'agora-rtc-sdk-ng'
 
 const props = defineProps({
   thumbs: {},
@@ -270,7 +271,7 @@ async function sendMessage() {
   }
 }
 
-// Lấy thời gian nhắn
+//  Lấy thời gian nhắn
 function getDisplayTime(messIndex) {
   const createdAt = new Date(conversation.value.messages[messIndex].created_at)
   if (messIndex === conversation.value.messages.length - 1) {
@@ -282,7 +283,7 @@ function getDisplayTime(messIndex) {
   return diffMinutes > 20 ? format(currentTime, 'MMM d, yyyy, h:mm a') : ''
 }
 
-// Chọn phương tiện
+// -------------------- Gửi ảnh --------------------
 const triggerFileInput = () => {
   fileInput.value.click()
 }
@@ -305,6 +306,7 @@ const handleFilesChange = (event) => {
 const removeFile = (index) => {
   mediaFiles.value.splice(index, 1)
 }
+// ------------------------------------------------------------
 
 function scrollToBottom() {
   const chatArea = document.querySelector('.chat-area')
@@ -317,6 +319,29 @@ function autoResize(event) {
   const textarea = event.target
   textarea.style.height = 'auto'
   textarea.style.height = textarea.scrollHeight + 'px'
+}
+
+// -------------------- Gọi --------------------
+async function startCall(conversationId) {
+  console.log('call')
+
+  try {
+    let content = 'Đã bắt đầu cuộc gọi'
+
+    let res = await axios.post(`conversation/startCall`, {
+      conversation_id: conversationId,
+      content: content,
+      type: 'video',
+    })
+
+    console.log('TOKEN', res.data.token)
+    console.log('TOKEN en', encodeURIComponent(res.data.token))
+    console.log('TOKEN dec', decodeURIComponent(encodeURIComponent(res.data.token)))
+    const url = `/call-window?channel=${encodeURIComponent(res.data.channel)}&token=${encodeURIComponent(res.data.token)}&message=${res.data.message.id}&uid=${res.data.uid}&role=caller&thumb=${res.data.thumb}`
+    window.open(url, '_blank', 'width=800,height=600')
+  } catch (error) {
+    console.log(error)
+  }
 }
 </script>
 

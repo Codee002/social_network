@@ -38,11 +38,24 @@ onMounted(async () => {
       .error((error) => {
         console.error('Echo error:', error)
       })
+
+    // Lắng nghe khi có người gọi
+    window.Echo.private(`user.${owner.value.id}`)
+      .listen('.call.request', (e) => {
+        console.log('BROADCAST NEW CALL ', e)
+        const url = `/call-window?channel=${e.channel}&thumb=${e.thumb}&message=${e.message.id}&role=receiver`
+        window.open(url, '_blank', 'width=800,height=600')
+      })
+
+      .error((error) => {
+        console.error('Echo error:', error)
+      })
   } catch (error) {
     console.log('Không lấy được thông tin User!', error)
     owner.value = null
   }
 })
+
 </script>
 
 
