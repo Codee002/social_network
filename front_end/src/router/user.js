@@ -6,6 +6,7 @@ import FavoritePage from '../pages/user/FavoritePage'
 import ConversationPage from '../pages/user/ConversationPage'
 import ChatArea from '@/pages/user/conversations/ChatArea'
 import PostPage from '@/pages/user/PostPage'
+import CallPage from '@/pages/user/conversations/CallPage'
 
 const userRoutes = [
   {
@@ -80,6 +81,15 @@ const userRoutes = [
         },
       },
     ],
+  },
+  {
+    path: '/call-window',
+    component: CallPage,
+    name: 'call',
+    meta: {
+      title: 'Cuộc gọi',
+      requiresAuth: true,
+    },
   },
 ]
 
