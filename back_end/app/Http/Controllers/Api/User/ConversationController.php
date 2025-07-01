@@ -1,6 +1,8 @@
 <?php
 namespace App\Http\Controllers\Api\User;
 
+use App\Events\CallAcceptRequest;
+use App\Events\NewCallRequest;
 use App\Events\ReceiveMessageRequest;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreConversationRequest;
@@ -11,7 +13,10 @@ use App\Models\MessageMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use TaylanUnutmaz\AgoraTokenBuilder\RtcTokenBuilder;
 
 class ConversationController extends Controller
 {
@@ -189,5 +194,112 @@ class ConversationController extends Controller
                 "data"    => $th->getMessage(),
             ], 400);
         }
+    }
+
+    public function startCall(Request $request)
+    {
+
+        $formUser     = $request->user();
+        $conversation = Conversation::find($request['conversation_id']);
+        $message      = Message::create([
+            'user_id'         => $formUser->id,
+            'content'         => $request['content'],
+            'type'            => $request['type'],
+            'conversation_id' => $request['conversation_id'],
+        ]);
+        try {
+            // Thông tin agora Channel
+            $ids     = Str::random(10);
+            $channel = "call_" . $ids;
+
+            // Token bảo mật
+            $uid        = $formUser->id;
+            $expireTime = time() + 3600;
+            Log::info('AGORA_APP_ID: ' . env('AGORA_APP_ID'));
+            Log::info('AGORA_CERTIFICATE: ' . env('AGORA_CERTIFICATE'));
+            $token = RtcTokenBuilder::buildTokenWithUid(
+                env('AGORA_APP_ID'),
+                env('AGORA_CERTIFICATE'),
+                $channel,
+                $uid, //id người dùng
+                RtcTokenBuilder::RolePublisher,
+                $expireTime,
+            );
+            Log::info('Generated Token FromUser: ' . $token);
+            Log::info('Generated Channel FromUser: ' . $channel);
+            // Ảnh call
+            $thumbForm = "null";
+            foreach ($conversation->users as $user) {
+                if ($user['id'] != $formUser->id) {
+                    if ($conversation->type == "friend") {
+                        $thumbForm = $user->profile->avatar ?? "null";
+                    } else {
+                        $thumbForm = $coversation->thumb ?? $formUser->profile->avatar ?? "null";
+                    }
+                }
+            }
+
+            // Ảnh của người nhận
+            $thumbTo = $coversation->thumb ?? $formUser->profile->avatar ?? "null";
+
+            // Gửi sự kiện đến từng user
+            foreach ($conversation->users as $user) {
+
+                if ($user['id'] != $formUser->id) {
+
+                    broadcast(new NewCallRequest($formUser, $user['id'], $channel, $message, $thumbTo))->toOthers();
+                }
+            }
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'channel' => $channel,
+                'token'   => $token,
+                'uid'     => $uid,
+                'thumb'   => $thumbForm,
+            ], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi tạo cuộc gọi",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+
+    }
+
+    public function acceptCall(Request $request)
+    {
+        try {
+
+            $user       = $request->user();
+            $channel    = $request->channel;
+            $message    = Message::find($request['message_id']);
+            $expireTime = time() + 3600;
+            $token      = RtcTokenBuilder::buildTokenWithUid(
+                env('AGORA_APP_ID'),
+                env('AGORA_CERTIFICATE'),
+                $channel,
+                $user->id, //id người dùng
+                RtcTokenBuilder::RolePublisher,
+                $expireTime,
+            );
+            Log::info('Generated Token ToUser: ' . $token);
+            Log::info('Generated Channel ToUser: ' . $channel);
+            broadcast(new CallAcceptRequest($message, $channel))->toOthers();
+            return response()->json([
+                'token' => $token,
+                'uid'   => $user->id,
+
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi khi chấp nhận cuộc gọi",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+
     }
 }
