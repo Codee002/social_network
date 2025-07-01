@@ -42,6 +42,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get("conversation/message/{conversation_id}", [ConversationController::class, "getMessage"]);
     Route::post("conversation/sendMessage", [ConversationController::class, "sendMessage"]);
     Route::post("conversation/createConversation", [ConversationController::class, "createConversation"]);
+    Route::post("conversation/startCall", [ConversationController::class, "startCall"]);
+    Route::post("conversation/acceptCall", [ConversationController::class, "acceptCall"]);
 
     // Post
     Route::post("post/store", [PostController::class, "store"]);
