@@ -7,6 +7,10 @@ import ConversationPage from '../pages/user/ConversationPage'
 import ChatArea from '@/pages/user/conversations/ChatArea'
 import PostPage from '@/pages/user/PostPage'
 import CallPage from '@/pages/user/conversations/CallPage'
+import SettingPage from '@/pages/user/SettingPage'
+import SettingInfo from '@/pages/user/settings/SettingInfo'
+import SettingSecurity from '@/pages/user/settings/SettingSecurity'
+import SettingTheme from '@/pages/user/settings/SettingTheme'
 
 const userRoutes = [
   {
@@ -15,6 +19,7 @@ const userRoutes = [
     meta: {
       requiresAuth: true,
     },
+    // Trang home
     children: [
       {
         path: 'home',
@@ -25,6 +30,8 @@ const userRoutes = [
           requiresAuth: true,
         },
       },
+
+      // Trang bạn bè
       {
         path: 'friend',
         component: FriendPage,
@@ -34,6 +41,8 @@ const userRoutes = [
           requiresAuth: true,
         },
       },
+
+      // Trang cá nhân
       {
         path: 'profile/:user_id',
         component: ProfilePage,
@@ -43,6 +52,8 @@ const userRoutes = [
           requiresAuth: true,
         },
       },
+
+      // Trang yêu thích
       {
         path: 'favorite',
         component: FavoritePage,
@@ -52,6 +63,8 @@ const userRoutes = [
           requiresAuth: true,
         },
       },
+
+      // Trang nhắn tin
       {
         path: 'conversation',
         component: ConversationPage,
@@ -71,6 +84,8 @@ const userRoutes = [
           },
         ],
       },
+
+      // Trang bài viết
       {
         path: 'post/:post_id',
         component: PostPage,
@@ -80,8 +95,51 @@ const userRoutes = [
           requiresAuth: true,
         },
       },
+
+      // Trang cài đặt
+      {
+        path: 'setting',
+        component: SettingPage,
+        name: 'setting',
+        meta: {
+          title: 'Cài đặt',
+          requiresAuth: true,
+        },
+        children: [
+          // Trang cài đặt thông tin cá nhân
+          {
+            path: 'info',
+            component: SettingInfo,
+            name: 'setting.info',
+            meta: {
+              requiresAuth: true,
+            },
+          },
+          // Trang cài đặt bảo mật
+          {
+            path: 'security',
+            component: SettingSecurity,
+            name: 'setting.security',
+            meta: {
+              requiresAuth: true,
+            },
+          },
+
+          // Trang cài đặt giao diện
+          {
+            path: 'theme',
+            component: SettingTheme,
+            name: 'setting.theme',
+            meta: {
+              requiresAuth: true,
+            },
+          },
+        ],
+      },
     ],
   },
+
+  // Trang call video
   {
     path: '/call-window',
     component: CallPage,
