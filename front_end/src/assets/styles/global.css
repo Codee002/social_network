@@ -150,12 +150,16 @@ hr {
   border: none;
 }
 
-.upload__btn--secondary{
-    background-color: var(--extra-bg);
-    color: var(--font-color);
+.modal-dialog .form-control.is-invalid {
+  border: 1px solid #dc3545 !important;
+  display: block !important;
 }
 
-.upload__btn--secondary:hover{
-    background-color: var(--extra-bg) !important;
+.upload__btn--secondary {
+  background-color: var(--extra-bg);
+  color: var(--font-color);
 }
 
+.upload__btn--secondary:hover {
+  background-color: var(--extra-bg) !important;
+}

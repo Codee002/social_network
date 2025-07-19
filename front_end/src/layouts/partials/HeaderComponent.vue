@@ -22,7 +22,7 @@
       <router-link :to="{ name: 'favorite' }">
         <icon-nav :isActive="{ 'is-active': $route.name === 'favorite' }"><i class="fa-solid fa-heart"></i></icon-nav>
       </router-link>
-      <router-link style="position: relative" :owner="user" :to="{ name: 'conversation' }">
+      <router-link style="position: relative"  :to="{ name: 'conversation' }">
         <icon-nav :isActive="{ 'is-active': $route.matched.some((r) => r.name === 'conversation') }">
           <i class="fa-solid fa-message"></i>
         </icon-nav>
@@ -116,7 +116,7 @@
         </router-link>
         <hr />
 
-        <router-link :to="{ name: 'home' }" class="d-flex">
+        <router-link :to="{ name: 'setting.info' }" class="d-flex">
           <nav-component>
             <template v-slot:icon>
               <i class="fa-solid fa-gear"></i>

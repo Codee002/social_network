@@ -45,6 +45,11 @@ import './assets/styles/global.css'
 // Time
 import dayjs from './plugins/dayjs'
 
+// Cookie
+import Cookies from 'js-cookie'
+const theme = Cookies.get('theme') || 'dark'
+document.documentElement.setAttribute('data-bs-theme', theme)
+
 const app = createApp(App)
 
 app.config.globalProperties.$dayjs = dayjs
