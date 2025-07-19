@@ -17,6 +17,7 @@
         aria-labelledby="modal-label"
         aria-hidden="true"
         v-if="relationStatus == 'owner'"
+        ref="avatarModal"
       >
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
@@ -217,6 +218,7 @@ defineProps({
 const mediaFiles = ref([])
 const fileInput = ref([])
 const emit = defineEmits(['addRelation', 'changeRelation'])
+const avatarModal = ref()
 
 async function startChat(userId) {
   try {
@@ -270,6 +272,8 @@ async function storeAvatar() {
         'Content-Type': 'multipart/form-data',
       },
     })
+    window.bootstrap.Modal.getInstance(avatarModal.value).hide()
+
     toast.success('Đổi ảnh đại diện thành công', {
       position: 'bottom-right',
     })

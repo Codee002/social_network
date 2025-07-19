@@ -13,7 +13,7 @@
           </div>
           <div class="profile__card__txt" v-if="user.profile.gender">
             <i class="bi bi-person-square me-2"></i>
-            Giới tính:&nbsp; {{ user.profile.gender ?? '' }}
+            Giới tính:&nbsp; {{ user.profile.gender == "male" ? "Nam" : "Nữ" }}
           </div>
 
           <div class="profile__card__txt" v-if="user.profile.address">
@@ -23,7 +23,7 @@
 
           <div class="profile__card__txt" v-if="user.profile.birthday">
             <i class="bi bi-cake2-fill me-2"></i>
-            Ngày sinh:&nbsp; {{ user.profile.birthday ?? '' }}
+            Ngày sinh:&nbsp; {{ user.profile.birthday ? $dayjs(user.profile.birthday).format('DD-MM-YYYY') : '' }}
           </div>
 
           <div class="profile__card__txt">
@@ -31,9 +31,9 @@
             Tham gia vào: {{ $dayjs(user.created_at).format('DD-MM-YYYY') ?? '' }}
           </div>
 
-          <a href="/setting/info" v-if="relationStatus == 'owner'">
+          <router-link :to="{name: 'setting.info'}" v-if="relationStatus == 'owner'">
             <div class="profile__card__btn">Chỉnh sửa chi tiết</div>
-          </a>
+          </router-link>
         </div>
       </div>
       <div class="profile__card profile__card--friend">

@@ -2,7 +2,7 @@
   <div v-if="user && !loading">
     <div class="profile__header">
       <div class="profile__inner profile__inner--header">
-        <profile-cover :srcThumb="srcThumb" :relationStatus="relationStatus"></profile-cover>
+        <profile-cover :srcThumb="srcThumb" :relationStatus="relationStatus" :user="user"></profile-cover>
         <profile-overview
           :user="user"
           :relationStatus="relationStatus"
@@ -108,27 +108,25 @@ onMounted(async () => {
 })
 
 watch(relation, () => {
-  // friendStatus()
-  relationStatus.value = auth.getRelationStatus(relation.value)
-  if (relationStatus.value == 'friend_pending') {
-    if (relation.value.sender_id == props.owner.id) action.value = 'sender'
-    else action.value = 'received'
+  // Chỉ xét lại khi trang cá nhân đang xem là người gửi hoặc người nhận kb
+  if (user.value.id == relation.value.sender_id || user.value.id == relation.value.received_id) {
+    relationStatus.value = auth.getRelationStatus(relation.value)
+    if (relationStatus.value == 'friend_pending') {
+      // Phía người gửi (đang xem trang người nhận)
+      if (relation.value.sender_id == props.owner.id) action.value = 'sender'
+      // Phía ngưởi nhận (đang xem trang người gửi)
+      else if (relation.value.sender_id == user.value.id) action.value = 'received'
+      // Phía người nhận (đang ở trang của chính họ)
+      else if (relation.value.received_id == props.owner.id && user.value.id == props.owner.id)
+        relationStatus.value = 'owner'
+    }
+  }
+
+  // Từ chối, Hủy lời mời kết bạn
+  if (relationStatus.value == 'stranger' && props.owner.id == user.value.id) {
+    relationStatus.value = 'owner'
   }
 })
-
-// function friendStatus() {
-//   if (relation.value == 'stranger' || relation.value.status == 'reject') {
-//     relationStatus.value = 'stranger'
-//   } else if (relation.value.type == 'friend') {
-//     if (relation.value.status == 'completed') {
-//       relationStatus.value = 'friend'
-//     } else {
-//       relationStatus.value = 'friend_pending'
-//       if (relation.value.sender_id == props.owner.id) action.value = 'sender'
-//       else action.value = 'received'
-//     }
-//   }
-// }
 
 function changeMode(change) {
   mode.value = change
