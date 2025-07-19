@@ -60,9 +60,13 @@
                 </div>
               </div>
               <div class="chat-message" v-if="message.content != null">
-                <p class="d-contents mb-0">
-                  {{ message.content }}
-                </p>
+                <div :class="{ type__video: message.type == 'video' || message.type == 'call' }">
+                  <i v-if="message.type == 'call'" class="fa-solid fa-phone"></i>
+                  <i v-if="message.type == 'video'" class="fa-solid fa-video"></i>
+                  <p class="d-contents mb-0">
+                    {{ message.content }}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -86,9 +90,13 @@
 
               <!-- Tin nhắn -->
               <div class="chat-message" v-if="message.content != null">
-                <p class="d-contents mb-0">
-                  {{ message.content }}
-                </p>
+                <div :class="{ type__video: message.type == 'video' || message.type == 'call' }">
+                  <i v-if="message.type == 'call'" class="fa-solid fa-phone"></i>
+                  <i v-if="message.type == 'video'" class="fa-solid fa-video"></i>
+                  <p class="d-contents mb-0">
+                    {{ message.content }}
+                  </p>
+                </div>
               </div>
 
               <!-- Hiển thị tiến trình -->
@@ -334,10 +342,9 @@ async function startCall(conversationId) {
       type: 'video',
     })
 
-    console.log('TOKEN', res.data.token)
-    console.log('TOKEN en', encodeURIComponent(res.data.token))
-    console.log('TOKEN dec', decodeURIComponent(encodeURIComponent(res.data.token)))
-    const url = `/call-window?channel=${encodeURIComponent(res.data.channel)}&token=${encodeURIComponent(res.data.token)}&message=${res.data.message.id}&uid=${res.data.uid}&role=caller&thumb=${res.data.thumb}`
+    const url = `/call-window?channel=${encodeURIComponent(res.data.channel)}&token=${encodeURIComponent(
+      res.data.token
+    )}&message=${res.data.message.id}&uid=${res.data.uid}&role=caller&thumb=${res.data.thumb}`
     window.open(url, '_blank', 'width=800,height=600')
   } catch (error) {
     console.log(error)
@@ -450,6 +457,20 @@ async function startCall(conversationId) {
 
 .chat-content .is-owner .chat-message {
   background-color: var(--main1-color);
+}
+
+.chat-message .type__video {
+  padding: .5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  /* flex-direction: column; */
+}
+
+.chat-message .type__video i {
+  font-size: 1.2rem;
+  margin-right: 1rem;
 }
 
 .chat-content img {

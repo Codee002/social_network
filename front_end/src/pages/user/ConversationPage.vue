@@ -14,7 +14,7 @@
       Chọn bạn bè để bắt đầu cuộc trò chuyện
     </div>
 
-    <router-view :owner='owner' :thumbs='thumbs' @updateConversation="updateConversation"></router-view>
+    <router-view :owner="owner" :thumbs="thumbs" @updateConversation="updateConversation"></router-view>
   </div>
 </template>
 
@@ -60,7 +60,6 @@ onMounted(async () => {
 watchEffect(() => {
   // Lấy ra thông tin cuộc trò chuyện
   conversations.value.forEach((conversation) => {
-    console.log('INNDEX', conversation.id)
     // Lấy ảnh nền
     if (conversation.thumb) {
       thumbs.value[conversation.id] = proxy.$backendBaseUrl + conversation.thumb
@@ -71,7 +70,11 @@ watchEffect(() => {
     // Lấy tin nhắn gần nhất
     if (conversation.message == null) {
       currentMessages.value[conversation.id] = 'Chưa có tin nhắn'
-    } else if (conversation.message.type == 'message') {
+    } else if (
+      conversation.message.type == 'message' ||
+      conversation.message.type == 'video' ||
+      conversation.message.type == 'call'
+    ) {
       currentMessages.value[conversation.id] = conversation.message.content
     } else if (conversation.message.type == 'media') {
       currentMessages.value[conversation.id] = `Đã gửi phương tiện`
