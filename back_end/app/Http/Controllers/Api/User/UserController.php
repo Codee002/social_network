@@ -2,10 +2,15 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateAddressRequest;
+use App\Http\Requests\UpdateBirthdayRequest;
+use App\Http\Requests\UpdateEmailPhoneRequest;
+use App\Http\Requests\UpdateNameRequest;
 use App\Models\Notification;
 use App\Models\Relation;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -159,6 +164,201 @@ class UserController extends Controller
             ], 422);
         }
 
+    }
+
+     public function storeThumb(Request $request)
+    {
+        try {
+            $request->validate([
+                'thumb' => 'required|file|mimes:jpg,jpeg,png',
+            ]);
+
+            $user = $request->user();
+            if ($request->has('thumb')) {
+                $path = $request['thumb']->store("user/thumbs", 'public');
+                $url  = Storage::url($path);
+            }
+
+            $user->profile()->update([
+                'thumb' => $url,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật ảnh bìa thành công',
+                'user'    => $user,
+            ], 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors'  => $e->errors(),
+            ], 422);
+        }
+
+    }
+
+    public function changeEmailAndPhone(UpdateEmailPhoneRequest $request)
+    {
+        $user = $request->user()->load("profile");
+        try {
+            if ($request['email'] != $user['email']) {
+                $user->update([
+                    'email'         => $request['email'],
+                    "email_active"  => '0',
+                    'two_step_auth' => 0,
+                ]);
+            }
+            if ($request['phone'] != $user->profile['phone']) {
+                $user->profile()->update([
+                    'phone' => $request['phone'],
+                ]);
+            }
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật email số điện thoại thành công',
+                'email'   => $request['email'],
+                'phone'   => $request['phone'],
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi khi cập nhật thông tin user",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function changeName(UpdateNameRequest $request)
+    {
+        $user = $request->user()->load("profile");
+        try {
+            if ($request['name'] != $user->profile['name']) {
+                $user->profile()->update([
+                    'name' => $request['name'],
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật tên thành công',
+                'name'    => $request['name'],
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi khi cập nhật tên",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function changeBirthday(UpdateBirthdayRequest $request)
+    {
+        $user = $request->user()->load("profile");
+        try {
+            if ($request['birthday'] != $user->profile['birthday']) {
+                $user->profile()->update([
+                    'birthday' => $request['birthday'],
+                ]);
+            }
+
+            return response()->json([
+                'success'  => true,
+                'message'  => 'Cập nhật ngày sinh thành công',
+                'birthday' => $request['birthday'],
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi khi cập nhật ngày sinh",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function changeGender(Request $request)
+    {
+        $user = $request->user()->load("profile");
+        try {
+            if ($request['gender'] != $user->profile['gender']) {
+                $user->profile()->update([
+                    'gender' => $request['gender'],
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật giới tính thành công',
+                'gender'  => $request['gender'],
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi khi cập nhật giới tính",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function changeAddress(UpdateAddressRequest $request)
+    {
+        $user = $request->user()->load("profile");
+        try {
+            if ($request['address'] != $user->profile['address']) {
+                $user->profile()->update([
+                    'address' => $request['address'],
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật mật khẩu thành công',
+                'address' => $request['address'],
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi khi cập nhật mật khẩu",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function changePassword(Request $request)
+    {
+        $user = $request->user();
+        if (! Hash::check($request['oldpass'], $user->password)) {
+            $errors = [
+                "oldpass" => [
+                    "Mật khẩu không đúng",
+                ],
+            ];
+            return response()->json([
+                "success" => false,
+                'message' => "Mật khẩu không đúng",
+                "errors"  => $errors,
+            ], 400);
+        }
+
+        $newPass = Hash::make($request['password']);
+        try {
+            $user->update([
+                'password' => $newPass,
+            ]);
+            return response()->json([
+                'success'  => true,
+                'message'  => 'Cập nhật mật khẩu thành công',
+                'password' => $request['password'],
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi khi cập nhật mật khẩu",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
     }
 
 }
