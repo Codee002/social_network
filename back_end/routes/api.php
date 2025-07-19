@@ -21,6 +21,7 @@ Route::prefix("/auth")->name("auth.")->group(function () {
 
 // User
 Route::middleware('auth:sanctum')->group(function () {
+    // User
     Route::get('/owner', [UserController::class, 'getOwner']);
     Route::get('/user/{id}', [UserController::class, 'getUser']);
     Route::get('/getRelation/{owner_id}/{user_id}', [UserController::class, 'getRelation']);
@@ -31,6 +32,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/getNotifications/{id}', [UserController::class, 'getNotifications']);
     Route::post('/readNotification/{id}', [UserController::class, 'readNotification']);
     Route::post('/storeAvatar', [UserController::class, 'storeAvatar']);
+    Route::post('/storeThumb', [UserController::class, 'storeThumb']);
+    Route::post('/changeEmailAndPhone', [UserController::class, 'changeEmailAndPhone']);
+    Route::post('/changeName', [UserController::class, 'changeName']);
+    Route::post('/changeBirthday', [UserController::class, 'changeBirthday']);
+    Route::post('/changeGender', [UserController::class, 'changeGender']);
+    Route::post('/changeAddress', [UserController::class, 'changeAddress']);
+    Route::post('/changePassword', [UserController::class, 'changePassword']);
 
     // Relation
     Route::post('/relation/addRelation/', [RelationController::class, 'addRelation']);
