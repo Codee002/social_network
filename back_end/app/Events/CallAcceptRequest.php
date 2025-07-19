@@ -1,6 +1,7 @@
 <?php
 namespace App\Events;
 
+use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -40,6 +41,14 @@ class CallAcceptRequest implements ShouldBroadcastNow
     public function broadcastAs()
     {
         return 'call.accept';
+    }
+
+    public function broadcastWith()
+    {
+        return [
+            'channel' => $this->channel,
+            'message' => $this->message,
+        ];
     }
 
 }

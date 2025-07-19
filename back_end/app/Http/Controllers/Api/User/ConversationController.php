@@ -234,13 +234,13 @@ class ConversationController extends Controller
                     if ($conversation->type == "friend") {
                         $thumbForm = $user->profile->avatar ?? "null";
                     } else {
-                        $thumbForm = $coversation->thumb ?? $formUser->profile->avatar ?? "null";
+                        $thumbForm = $conversation->thumb ?? $formUser->profile->avatar ?? "null";
                     }
                 }
             }
 
             // Ảnh của người nhận
-            $thumbTo = $coversation->thumb ?? $formUser->profile->avatar ?? "null";
+            $thumbTo = $conversation->thumb ?? $formUser->profile->avatar ?? "null";
 
             // Gửi sự kiện đến từng user
             foreach ($conversation->users as $user) {

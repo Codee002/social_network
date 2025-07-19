@@ -28,11 +28,11 @@ class Conversation extends Model
 
     public static function findConversationUser($ownerId, $userId)
     {
-        $conversations = Conversation::with('users')->get();
+        $conversations = Conversation::with('users')
+            ->where("type", 'friend')->get();
         foreach ($conversations as $conversation) {
             $usersIdArray = $conversation->users()->pluck('user_id')->all();
-            if (in_array($ownerId, $usersIdArray) && in_array($userId, $usersIdArray))
-            {
+            if (in_array($ownerId, $usersIdArray) && in_array($userId, $usersIdArray)) {
                 return $conversation;
             }
         }
