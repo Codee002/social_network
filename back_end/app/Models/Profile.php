@@ -14,6 +14,7 @@ class Profile extends Model
         'thumb',
         'bio',
         'user_id',
+        'address',
     ];
 
     // ------------ Relation -----------
