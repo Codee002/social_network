@@ -61,7 +61,7 @@
             <button data-bs-dismiss="modal" type="button" class="upload__btn btn upload__btn--secondary upload__reset">
               Hủy
             </button>
-            <button class="upload__btn btn upload__btn--primary upload__save hide" @click="storeThumb">Cập nhật</button>
+            <button class="upload__btn btn upload__btn--primary upload__save hide" :disabled="mediaFiles.length == 0" @click="storeThumb">Cập nhật</button>
           </div>
         </div>
       </div>

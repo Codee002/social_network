@@ -96,15 +96,15 @@ const observer = new IntersectionObserver(
     entries.forEach((entry) => {
       const postId = entry.target.dataset.postId
       if (entry.isIntersecting) {
-        // Nếu người dùng hiện tại chưa xem và chưa có timer thì bắt đầu đếm 2s
+        // Nếu người dùng hiện tại chưa xem và chưa có timer thì bắt đầu đếm 5s
         if (!views.value[postId].includes(props.owner.id) && !viewTimers[postId]) {
           viewTimers[postId] = setTimeout(() => {
             storeView(postId, props.owner.id, 1)
             delete viewTimers[postId]
-          }, 2000)
+          }, 5000)
         }
       } else {
-        // Nếu rời khỏi viewport trước 2s thì hủy timeout
+        // Nếu rời khỏi viewport trước 5s thì hủy timeout
         if (viewTimers[postId]) {
           clearTimeout(viewTimers[postId])
           delete viewTimers[postId]
