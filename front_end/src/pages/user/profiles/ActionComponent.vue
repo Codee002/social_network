@@ -1,6 +1,5 @@
 <template>
   <!-- Đăng bài -->
-
   <div class="post-card">
     <div class="post__header">
       <div class="post__author">

@@ -24,7 +24,7 @@
       @changeMode="changeMode"
     ></profile-content>
     <friend-page :relationStatus="relationStatus" v-if="mode == 'friend'"></friend-page>
-
+    <interview-component :showListFriend="false"  @changeMode="changeMode" :relationStatus="relationStatus" :user="user" style="margin:auto; width: 60%;"></interview-component>
     <div style="min-height: 200vh" class="content"></div>
   </div>
 
@@ -38,6 +38,7 @@ import ProfileOverview from './profiles/ProfileOverview.vue'
 import ProfileNav from './profiles/ProfileNav.vue'
 import ProfileContent from './profiles/ProfileContent.vue'
 import FriendPage from '@/pages/user/FriendPage.vue'
+import InterviewComponent from '@/pages/user/profiles/InterviewComponent.vue'
 import axios from 'axios'
 import auth from '@/utils/auth'
 import { useRoute } from 'vue-router'

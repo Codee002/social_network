@@ -6,14 +6,26 @@
           <div class="profile__card__heading">Giới thiệu</div>
         </div>
         <div class="profile__card__content">
-          <div class="profile__card__txt profile__card__txt--bio text-center">{{ user.profile.bio ?? '' }}</div>
+          <div class="profile__card__txt profile__card__txt--bio text-center">
+            {{ bioShow ?? 'Chưa có tiểu sử' }}
+          </div>
 
-          <div class="profile__card__btn profile__card__btn--edit" v-if="relationStatus == 'owner'">
+          <input
+            type="text"
+            class="profile__card__txt profile__card__txt--bio text-center"
+            style="width: 100%; display: none"
+            v-model="bio"
+            @blur="hideInput"
+            @keyup.enter="handleEnter"
+            ref="inputBio"
+          />
+
+          <div class="profile__card__btn profile__card__btn--edit" v-if="relationStatus == 'owner'" @click="changeBio">
             Chỉnh sửa tiểu sử
           </div>
           <div class="profile__card__txt" v-if="user.profile.gender">
             <i class="bi bi-person-square me-2"></i>
-            Giới tính:&nbsp; {{ user.profile.gender == "male" ? "Nam" : "Nữ" }}
+            Giới tính:&nbsp; {{ user.profile.gender == 'male' ? 'Nam' : 'Nữ' }}
           </div>
 
           <div class="profile__card__txt" v-if="user.profile.address">
@@ -31,12 +43,12 @@
             Tham gia vào: {{ $dayjs(user.created_at).format('DD-MM-YYYY') ?? '' }}
           </div>
 
-          <router-link :to="{name: 'setting.info'}" v-if="relationStatus == 'owner'">
+          <router-link :to="{ name: 'setting.info' }" v-if="relationStatus == 'owner'">
             <div class="profile__card__btn">Chỉnh sửa chi tiết</div>
           </router-link>
         </div>
       </div>
-      <div class="profile__card profile__card--friend">
+      <div class="profile__card profile__card--friend" v-if="showListFriend == true">
         <div class="profile__card__header">
           <div class="d-flex justify-content-between align-items-center">
             <div class="profile__card__heading">Bạn bè</div>
@@ -65,12 +77,22 @@
 </template>
 
 <script setup>
-import { computed, defineProps, defineEmits } from 'vue'
+import axios from 'axios'
+import { computed, defineProps, defineEmits, ref } from 'vue'
 const emit = defineEmits(['changeMode'])
 const props = defineProps({
   user: {},
   relationStatus: {},
+  showListFriend: {
+    default: true,
+  },
 })
+
+const inputBio = ref()
+const bio = ref()
+const bioShow = ref()
+Object.assign(bio, props.user.profile.bio)
+Object.assign(bioShow, props.user.profile.bio)
 
 function changeMode(mode) {
   emit('changeMode', mode)
@@ -80,6 +102,29 @@ const listFriend = computed(() => {
   if (props.user.friends.length > 9) return props.user.friends.slice(0, 9)
   return props.user.friends
 })
+
+function changeBio() {
+  inputBio.value.style.display = 'block'
+  inputBio.value.focus()
+}
+
+function hideInput(event) {
+  event.target.style.display = 'none'
+}
+
+async function handleEnter()
+{
+    try {
+    let res = await axios.post(`/changeBio`, {
+      bio:bio.value
+    })
+    bio.value = res.data.bio
+    bioShow.value = res.data.bioShow
+
+  } catch (error) {
+    console.log('Lỗi khi cập nhật tiểu sử', error)
+  }
+}
 </script>
 
 <style scoped>
@@ -162,6 +207,10 @@ const listFriend = computed(() => {
   font-size: 0.9375rem;
   font-weight: 600;
   margin-bottom: 0.65rem;
+}
+
+.profile__card__btn--edit {
+  cursor: pointer;
 }
 
 .profile__card__action {
