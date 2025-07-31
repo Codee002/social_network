@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\User\ConversationController;
 use App\Http\Controllers\Api\User\PostController;
 use App\Http\Controllers\Api\User\RelationController;
+use App\Http\Controllers\Api\User\StoryController;
 use App\Http\Controllers\Api\User\UserController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +40,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/changeGender', [UserController::class, 'changeGender']);
     Route::post('/changeAddress', [UserController::class, 'changeAddress']);
     Route::post('/changePassword', [UserController::class, 'changePassword']);
+    Route::post('/changeBio', [UserController::class, 'changeBio']);
+    Route::get('/getFavoritePosts', [UserController::class, 'getFavoritePosts']);
 
     // Relation
     Route::post('/relation/addRelation/', [RelationController::class, 'addRelation']);
@@ -60,5 +63,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post("post/storeLike/", [PostController::class, "storeLike"]);
     Route::post("post/storeView/", [PostController::class, "storeView"]);
     Route::post("post/storeShare/", [PostController::class, "storeShare"]);
+    Route::get("post/getDashBoardPosts", [PostController::class, "getDashBoardPosts"]);
+
+    // Story
+    Route::post("story/createStory/", [StoryController::class, "createStory"]);
+    Route::get("story/getDashboardStories/", [StoryController::class, "getDashboardStories"]);
+    Route::get("story/getStoryDetail/{story_id}", [StoryController::class, "getStoryDetail"]);
+    Route::post("story/storeView", [StoryController::class, "storeView"]);
 
 });
