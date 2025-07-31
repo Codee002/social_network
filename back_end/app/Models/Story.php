@@ -24,8 +24,8 @@ class Story extends Model
     }
 
 
-    public function medias()
+    public function media()
     {
-        return $this->hasMany(StoryMedia::class);
+        return $this->hasOne(StoryMedia::class);
     }
 }
