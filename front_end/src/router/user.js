@@ -6,6 +6,7 @@ import FavoritePage from '../pages/user/FavoritePage'
 import ConversationPage from '../pages/user/ConversationPage'
 import ChatArea from '@/pages/user/conversations/ChatArea'
 import PostPage from '@/pages/user/PostPage'
+import StoryDetail from '@/pages/user/story/StoryDetail'
 import CallPage from '@/pages/user/conversations/CallPage'
 import SettingPage from '@/pages/user/SettingPage'
 import SettingInfo from '@/pages/user/settings/SettingInfo'
@@ -92,6 +93,17 @@ const userRoutes = [
         name: 'post',
         meta: {
           title: 'Bài viết',
+          requiresAuth: true,
+        },
+      },
+
+      // Trang tin
+      {
+        path: 'story/:story_id',
+        component: StoryDetail,
+        name: 'story',
+        meta: {
+          title: 'Story',
           requiresAuth: true,
         },
       },
