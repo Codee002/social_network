@@ -63,6 +63,17 @@ class Relation extends Model
         return $friendList;
     }
 
+     public static function getFriendsId($userId)
+    {
+        $friendList = Relation::getFriends($userId);
+        $friendListIds = [];
+        foreach ($friendList as $relation)
+        {
+            $friendListIds[] = $relation->user->id;
+        }
+        return $friendListIds;
+    }
+
     public static function getInvited($userId)
     {
         $listInvited = User::find($userId)->receivedRelations()

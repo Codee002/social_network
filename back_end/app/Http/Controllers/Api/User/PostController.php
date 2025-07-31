@@ -16,6 +16,7 @@ use App\Models\Like;
 use App\Models\Notification;
 use App\Models\Post;
 use App\Models\PostMedia;
+use App\Models\Relation;
 use App\Models\Share;
 use App\Models\User;
 use App\Models\Watch;
@@ -124,12 +125,14 @@ class PostController extends Controller
             });
 
             // Tạo thông báo
-            $contentNotif = "đã bình luận bài viết của bạn";
-            $typeNotif    = "post";
-            $notification = Notification::createNotification($result['user_id'], $result->post->user_id,
-                $contentNotif, $typeNotif, $result['post_id']);
-            broadcast(new NewNotificationEvent($notification))->toOthers();
-
+            $post = Post::find($request['post_id']);
+            if ($request['user_id'] != $post['user_id']) {
+                $contentNotif = "đã bình luận bài viết của bạn";
+                $typeNotif    = "post";
+                $notification = Notification::createNotification($result['user_id'], $result->post->user_id,
+                    $contentNotif, $typeNotif, $result['post_id']);
+                broadcast(new NewNotificationEvent($notification))->toOthers();
+            }
             broadcast(new NewCommentRequest($request['post_id'], $result))->toOthers();
             return response()->json([
                 'success' => true,
@@ -149,12 +152,12 @@ class PostController extends Controller
     public function storeLike(Request $request)
     {
         try {
-            $result = DB::transaction(function () use ($request) {
+            $likeStatus = null;
+            $result     = DB::transaction(function () use ($request, $likeStatus) {
                 $like = Like::query()
                     ->where("user_id", $request['user_id'])
                     ->where("post_id", $request['post_id'])
                     ->first();
-
                 // dd($like);
                 if (! $like) {
                     $newLike = Like::create([
@@ -162,20 +165,28 @@ class PostController extends Controller
                         'post_id' => $request['post_id'],
                         'score'   => $request['score'],
                     ]);
+                    $likeStatus = true;
+                    $temp       = $newLike;
                 } else {
                     $temp = $like;
                     $like->delete();
+                    $likeStatus = false;
+
+                }
+
+                // Tạo thông báo
+                // Nếu người dùng like và không phải là chủ bài viết
+                $post = Post::find($request['post_id']);
+                if ($likeStatus && $request['user_id'] != $post['user_id']) {
+                    $contentNotif = "đã thích bài viết của bạn";
+                    $typeNotif    = "post";
+                    $notification = Notification::createNotification($temp['user_id'], $temp->post->user_id,
+                        $contentNotif, $typeNotif, $temp['post_id']);
+                    broadcast(new NewNotificationEvent($notification))->toOthers();
                 }
 
                 return $newLike ?? $temp;
             });
-
-            // Tạo thông báo
-            $contentNotif = "đã thích bài viết của bạn";
-            $typeNotif    = "post";
-            $notification = Notification::createNotification($result['user_id'], $result->post->user_id,
-                $contentNotif, $typeNotif, $result['post_id']);
-            broadcast(new NewNotificationEvent($notification))->toOthers();
 
             broadcast(new NewLikeRequest($request['post_id'], $result))->toOthers();
 
@@ -245,11 +256,14 @@ class PostController extends Controller
             });
 
             // Tạo thông báo
-            $contentNotif = "đã chia sẻ bài viết của bạn";
-            $typeNotif    = "post";
-            $notification = Notification::createNotification($result['user_id'], $result->post->user_id,
-                $contentNotif, $typeNotif, $result['post_id']);
-            broadcast(new NewNotificationEvent($notification))->toOthers();
+            $post = Post::find($request['post_id']);
+            if ($request['user_id'] != $post['user_id']) {
+                $contentNotif = "đã chia sẻ bài viết của bạn";
+                $typeNotif    = "post";
+                $notification = Notification::createNotification($result['user_id'], $result->post->user_id,
+                    $contentNotif, $typeNotif, $result['post_id']);
+                broadcast(new NewNotificationEvent($notification))->toOthers();
+            }
 
             broadcast(new NewShareRequest($request['post_id'], $result))->toOthers();
 
@@ -267,5 +281,54 @@ class PostController extends Controller
             ], 400);
         }
 
+    }
+
+    // Lấy Dashboard Post
+    public function getDashBoardPosts(Request $request)
+    {
+        $user          = $request->user();
+        $listFriendIds = Relation::getFriendsId($user['id']);
+        $perPage       = $request->get('perPage', 10);
+        $posts         = Post::with(['medias', 'user.profile'])
+        // Lấy các bài public
+            ->where("rule", "public")
+            ->orWhere("user_id", $user['id'])
+            ->orWhere(function ($q) use ($listFriendIds) {
+
+                // Lấy các bài của bạn bè
+                $q->where('rule', 'friend')->whereIn('user_id', $listFriendIds);
+            })
+
+        // Tính tổng điểm
+            ->select('posts.*')
+            ->selectRaw('
+        COALESCE((SELECT SUM(score) FROM likes WHERE likes.post_id = posts.id), 0) +
+        COALESCE((SELECT SUM(score) FROM watches WHERE watches.post_id = posts.id), 0) +
+        COALESCE((SELECT SUM(score) FROM comments WHERE comments.post_id = posts.id), 0) +
+        COALESCE((SELECT SUM(score) FROM shares WHERE shares.post_id = posts.id), 0) -
+        COALESCE((SELECT SUM(score) FROM reports WHERE reports.post_id = posts.id), 0) AS total_score
+    ')
+            ->orderByDesc('total_score')
+            ->paginate($perPage);
+
+        $views  = [];
+        $likes  = [];
+        $shares = [];
+        foreach ($posts as $post) {
+            $likes[$post->id]    = $post->likes()->pluck("user_id")->all();
+            $views[$post->id]    = $post->watches()->pluck("user_id")->all();
+            $comments[$post->id] = $post->comments()->pluck("user_id")->all();
+            $shares[$post->id]   = $post->shares()->pluck("user_id")->all();
+        }
+
+        return response()->json([
+            "success"  => true,
+            'message'  => "Lấy bài viết cho trang chủ thành công",
+            "posts"    => $posts,
+            "views"    => $views,
+            "likes"    => $likes,
+            "comments" => $comments,
+            "shares"   => $shares,
+        ], 200);
     }
 }
