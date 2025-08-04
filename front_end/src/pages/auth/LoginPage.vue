@@ -130,7 +130,10 @@ async function onSubmit() {
     try {
       const res = await axios.post(`/auth/login`, form)
       localStorage.setItem('auth_token', res.data.auth_token)
-      router.push({ name: 'home' })
+      localStorage.setItem('owner', JSON.stringify(res.data.user))
+      axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('auth_token')}`
+      if (res.data.user.role == 'user') router.push({ name: 'home' })
+      else if (res.data.user.role == 'admin') router.push({name: "admin.account"})
     } catch (error) {
       if (error.response) {
         const resData = error.response.data

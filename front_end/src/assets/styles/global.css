@@ -163,3 +163,8 @@ hr {
 .upload__btn--secondary:hover {
   background-color: var(--extra-bg) !important;
 }
+
+.form-select {
+  background-color: var(--main-extra-bg) !important;
+  /* border: var(--border-color); */
+}
