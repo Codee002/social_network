@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Api\User;
 
+use App\Events\NewNotificationEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateAddressRequest;
 use App\Http\Requests\UpdateBirthdayRequest;
@@ -8,8 +9,10 @@ use App\Http\Requests\UpdateEmailPhoneRequest;
 use App\Http\Requests\UpdateNameRequest;
 use App\Models\Notification;
 use App\Models\Relation;
+use App\Models\Report;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -102,6 +105,27 @@ class UserController extends Controller
         ], 200);
     }
 
+    public function getStories(Request $request)
+    {
+        $user    = $request->user();
+        $stories = $user->stories()
+            ->with(['user.profile', 'media'])
+            ->orderBy("created_at", 'desc')
+            ->get();
+
+        $views = [];
+        foreach ($stories as $story) {
+            $views[$story->id] = $story->watches()->pluck("user_id")->all();
+        }
+
+        return response()->json([
+            "success" => true,
+            'message' => "Lấy tin thành công",
+            "stories" => $stories,
+            "views"   => $views,
+        ], 200);
+    }
+
     public function getNotifications($userId)
     {
         $user          = User::find($userId);
@@ -154,6 +178,7 @@ class UserController extends Controller
                 'success' => true,
                 'message' => 'Cập nhật avatar thành công',
                 'user'    => $user,
+                'avatar'  => $url,
             ], 200);
 
         } catch (ValidationException $e) {
@@ -166,7 +191,7 @@ class UserController extends Controller
 
     }
 
-     public function storeThumb(Request $request)
+    public function storeThumb(Request $request)
     {
         try {
             $request->validate([
@@ -187,6 +212,7 @@ class UserController extends Controller
                 'success' => true,
                 'message' => 'Cập nhật ảnh bìa thành công',
                 'user'    => $user,
+                'thumb'   => $url,
             ], 200);
 
         } catch (ValidationException $e) {
@@ -359,6 +385,98 @@ class UserController extends Controller
                 "data"    => $th->getMessage(),
             ], 400);
         }
+    }
+
+    public function getFavoritePosts(Request $request)
+    {
+        $user  = $request->user();
+        $posts = [];
+        foreach ($user->likes as $like) {
+            $posts[] = $like->post()->with("medias")->orderBy("created_at", 'desc')
+                ->with('user.profile')->first();
+        }
+
+        $views  = [];
+        $likes  = [];
+        $shares = [];
+        foreach ($posts as $post) {
+            $likes[$post->id]    = $post->likes()->pluck("user_id")->all();
+            $views[$post->id]    = $post->watches()->pluck("user_id")->all();
+            $comments[$post->id] = $post->comments()->pluck("user_id")->all();
+            $shares[$post->id]   = $post->shares()->pluck("user_id")->all();
+        }
+
+        return response()->json([
+            "success"  => true,
+            "message"  => 'Lấy bài viết thành công',
+            "posts"    => $posts,
+            "views"    => $views,
+            "likes"    => $likes,
+            "comments" => $comments,
+            "shares"   => $shares,
+        ], 200);
+    }
+
+    public function changeBio(Request $request)
+    {
+        $user = $request->user()->load("profile");
+        try {
+            if ($request['bio'] != $user->profile['bio']) {
+                $user->profile()->update([
+                    'bio' => $request['bio'],
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật tiểu sử thành công',
+                'bio'     => $request['bio'],
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi khi cập nhật tiểu sử thành công",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+    }
+
+    // Tố cáo tài khoản
+    public function reportAccount(Request $request)
+    {
+        try {
+            $result = DB::transaction(function () use ($request) {
+                $report = Report::create([
+                    'user_id'     => $request['user_id'],
+                    'received_id' => $request['received_id'],
+                    'score'       => $request['score'],
+                    'content'     => $request['content'],
+                ]);
+                return $report;
+            });
+
+            // Tạo thông báo
+            $admin        = User::getAdmin();
+            $contentNotif = "đã tố cáo người dùng";
+            $typeNotif    = "user";
+            $notification = Notification::createNotification($result['user_id'], $admin->id,
+                $contentNotif, $typeNotif, $result['received_id']);
+            broadcast(new NewNotificationEvent($notification))->toOthers();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Tố cáo người dùng thành công",
+                'result'  => $result,
+            ]);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi khi tố cáo người dùng",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+
     }
 
 }

@@ -17,6 +17,7 @@ use App\Models\Notification;
 use App\Models\Post;
 use App\Models\PostMedia;
 use App\Models\Relation;
+use App\Models\Report;
 use App\Models\Share;
 use App\Models\User;
 use App\Models\Watch;
@@ -283,6 +284,44 @@ class PostController extends Controller
 
     }
 
+    //  Tố cáo
+    public function storeReport(Request $request)
+    {
+        try {
+            $result = DB::transaction(function () use ($request) {
+                $report = Report::create([
+                    'user_id' => $request['user_id'],
+                    'post_id' => $request['post_id'],
+                    'score'   => $request['score'],
+                    'content' => $request['content'],
+                ]);
+                return $report;
+            });
+
+            // Tạo thông báo
+            $admin        = User::getAdmin();
+            $contentNotif = "đã tố cáo 1 bài viết";
+            $typeNotif    = "post";
+            $notification = Notification::createNotification($result['user_id'], $admin->id,
+                $contentNotif, $typeNotif, $result['post_id']);
+            broadcast(new NewNotificationEvent($notification))->toOthers();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Tố cáo bài viết thành công",
+                'result'  => $result,
+            ]);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi khi tố cáo bài viết",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+
+    }
+
     // Lấy Dashboard Post
     public function getDashBoardPosts(Request $request)
     {
@@ -292,6 +331,7 @@ class PostController extends Controller
         $posts         = Post::with(['medias', 'user.profile'])
         // Lấy các bài public
             ->where("rule", "public")
+            ->where("status", 'actived')
             ->orWhere("user_id", $user['id'])
             ->orWhere(function ($q) use ($listFriendIds) {
 
