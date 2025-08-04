@@ -148,4 +148,17 @@ class User extends Authenticatable
             echo $relation->status;
         }
     }
+
+    // Lấy ra người dùng Admin
+    public static function getAdmin()
+    {
+        $admin = User::query()->where("role", "admin")->first();
+        return $admin;
+    }
+
+    // Kiểm tra admin
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
 }

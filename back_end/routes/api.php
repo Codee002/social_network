@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\AccountController;
+use App\Http\Controllers\Api\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\User\ConversationController;
@@ -7,6 +9,7 @@ use App\Http\Controllers\Api\User\PostController;
 use App\Http\Controllers\Api\User\RelationController;
 use App\Http\Controllers\Api\User\StoryController;
 use App\Http\Controllers\Api\User\UserController;
+use App\Http\Middleware\isAdmin;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/getRelation/{owner_id}/{user_id}', [UserController::class, 'getRelation']);
     // Route::get('/getFriends/{id}', [UserController::class, 'getFriends']);
     Route::get('/getPosts/{id}', [UserController::class, 'getPosts']);
+    Route::get('/getStories', [UserController::class, 'getStories']);
     Route::get('/getFriends/{id}', [UserController::class, 'getFriends']);
     Route::get('/getInvited/{id}', [UserController::class, 'getInvited']);
     Route::get('/getNotifications/{id}', [UserController::class, 'getNotifications']);
@@ -42,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/changePassword', [UserController::class, 'changePassword']);
     Route::post('/changeBio', [UserController::class, 'changeBio']);
     Route::get('/getFavoritePosts', [UserController::class, 'getFavoritePosts']);
+    Route::post('/reportAccount', [UserController::class, 'reportAccount']);
 
     // Relation
     Route::post('/relation/addRelation/', [RelationController::class, 'addRelation']);
@@ -52,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get("conversation/get", [ConversationController::class, "getConversation"]);
     Route::get("conversation/message/{conversation_id}", [ConversationController::class, "getMessage"]);
     Route::post("conversation/sendMessage", [ConversationController::class, "sendMessage"]);
+    Route::post("conversation/sendPostMessage", [ConversationController::class, "sendPostMessage"]);
     Route::post("conversation/createConversation", [ConversationController::class, "createConversation"]);
     Route::post("conversation/startCall", [ConversationController::class, "startCall"]);
     Route::post("conversation/acceptCall", [ConversationController::class, "acceptCall"]);
@@ -63,6 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post("post/storeLike/", [PostController::class, "storeLike"]);
     Route::post("post/storeView/", [PostController::class, "storeView"]);
     Route::post("post/storeShare/", [PostController::class, "storeShare"]);
+    Route::post("post/storeReport/", [PostController::class, "storeReport"]);
     Route::get("post/getDashBoardPosts", [PostController::class, "getDashBoardPosts"]);
 
     // Story
@@ -71,4 +78,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get("story/getStoryDetail/{story_id}", [StoryController::class, "getStoryDetail"]);
     Route::post("story/storeView", [StoryController::class, "storeView"]);
 
+});
+
+// Admin
+Route::middleware(['auth:sanctum', isAdmin::class])->prefix("/admin")->group(function () {
+    // Account
+    Route::get("account/getAccounts", [AccountController::class, "getAccounts"]);
+    Route::post("account/changeAccountStatus", [AccountController::class, "changeAccountStatus"]);
+    Route::get("account/getReportAccounts", [AccountController::class, "getReportAccounts"]);
+
+    // Post
+    Route::get("post/getPosts", [AdminPostController::class, "getPosts"]);
+    Route::post("post/changePostStatus", [AdminPostController::class, "changePostStatus"]);
+    Route::get("post/getReportPosts", [AdminPostController::class, "getReportPosts"]);
 });

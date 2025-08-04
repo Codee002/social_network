@@ -45,12 +45,10 @@ class AuthController extends Controller
     // Đăng nhập
     public function login(Request $request)
     {
-        if (Auth::attemptWhen([
+        if (Auth::attempt([
             "username" => $request['username'],
             "password" => $request['password'],
-        ], function (User $user) {
-            return $user->isNotBanned();
-        })) {
+        ])) {
             /**
              * @var User $user
              */
@@ -61,9 +59,9 @@ class AuthController extends Controller
                 "message"     => "Đăng nhập thành công",
                 'auth_token'  => $token,
                 'token_type ' => 'Bearer',
-                'user'        => $user,
+                'user'        => $user->load("profile"),
             ], 200);
-        };
+        }
         return response()->json([
             "success" => false,
             'message' => "Đăng nhập thất bại",
