@@ -32,9 +32,9 @@
           {{ $dayjs(story.created_at).fromNow() }}
         </div>
       </router-link>
-      <router-link :to="{name: 'home'}" class="position-absolute" style="top: 1.1rem; right: 0.8rem">
+      <a @click="goBack" href="#" class="position-absolute" style="top: 1.1rem; right: 0.8rem">
         <i class="fa-solid fa-xmark fs-3"></i>
-      </router-link>
+      </a>
     </div>
   </div>
 </template>
@@ -42,7 +42,8 @@
 <script setup>
 import axios from 'axios'
 import { onMounted, ref, defineProps } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+
 const props = defineProps({
   owner: {},
 })
@@ -50,6 +51,13 @@ const story = ref()
 const views = ref()
 const route = useRoute()
 const storyId = route.params.story_id
+
+const router = useRouter()
+
+// Quay về
+function goBack() {
+  router.back()
+}
 
 onMounted(async () => {
   try {
