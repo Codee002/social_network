@@ -22,7 +22,7 @@
       <router-link :to="{ name: 'favorite' }">
         <icon-nav :isActive="{ 'is-active': $route.name === 'favorite' }"><i class="fa-solid fa-heart"></i></icon-nav>
       </router-link>
-      <router-link style="position: relative"  :to="{ name: 'conversation' }">
+      <router-link style="position: relative" :to="{ name: 'conversation' }">
         <icon-nav :isActive="{ 'is-active': $route.matched.some((r) => r.name === 'conversation') }">
           <i class="fa-solid fa-message"></i>
         </icon-nav>
@@ -115,6 +115,14 @@
           </nav-component>
         </router-link>
         <hr />
+        <router-link v-if="user.role == 'admin'" :to="{ name: 'admin.account' }" class="d-flex">
+          <nav-component>
+            <template v-slot:icon>
+              <i class="fa-solid fa-lock"></i>
+            </template>
+            <template v-slot:des>Trang quản lý</template>
+          </nav-component>
+        </router-link>
 
         <router-link :to="{ name: 'setting.info' }" class="d-flex">
           <nav-component>
@@ -124,14 +132,14 @@
             <template v-slot:des>Cài đặt & quyền riêng tư</template>
           </nav-component>
         </router-link>
-        <router-link :to="{ name: 'auth.login' }" class="d-flex" @click="logout()">
+        <a class="d-flex" @click="logout()">
           <nav-component>
             <template v-slot:icon>
               <i class="fa-solid fa-right-from-bracket"></i>
             </template>
             <template v-slot:des>Đăng xuất</template>
           </nav-component>
-        </router-link>
+        </a>
       </ul>
     </div>
   </header>
@@ -191,6 +199,8 @@ async function readNotification(notification) {
     router.push({ name: 'friend' })
   } else if (notification.type == 'post') {
     router.push({ name: 'post', params: { post_id: notification.url_id } })
+  } else if (notification.type == 'user') {
+    router.push({ name: 'admin.account.report' })
   }
 
   isNotificationOpen.value = false
@@ -200,6 +210,7 @@ async function logout() {
   try {
     const res = await axios.post(`/auth/logout`, {})
     localStorage.removeItem('auth_token')
+    localStorage.removeItem('owner')
     console.log(res)
     router.push({ name: 'auth.login' })
   } catch (error) {

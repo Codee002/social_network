@@ -17,6 +17,7 @@
           :owner="owner"
           :relationStatus="relationStatus"
           :ref="(el) => (postRefs[post.id] = el)"
+          :listFriend="listFriend"
         ></post-component>
       </div>
       <div class="post__container load_more_post" ref="loadMorePost">
@@ -24,9 +25,7 @@
       </div>
 
       <div class="post__container no__post" v-if="hasMore == false">
-        <div>
-          Bạn đã xem hết bài viết cho ngày hôm nay, hãy kết bạn nhiều hơn để nhận được nhiều bài viết nữa
-        </div>
+        <div>Bạn đã xem hết bài viết cho ngày hôm nay, hãy kết bạn nhiều hơn để nhận được nhiều bài viết nữa</div>
       </div>
     </div>
   </div>
@@ -42,6 +41,9 @@ import axios from 'axios'
 const props = defineProps({
   owner: {},
   relationStatus: {},
+  listFriend: {
+    default: [],
+  },
 })
 
 const posts = ref([])
@@ -77,14 +79,12 @@ onMounted(async () => {
 
 // Lấy bài viêt
 async function getPosts() {
-  if (hasMore.value == false)
-    return;
+  if (hasMore.value == false) return
   loading.value = true
   try {
     let res = await axios.get(`/post/getDashBoardPosts?page=${currentPage.value}&perPage=${perPage}`)
-    if (res.data.posts.current_page >= res.data.posts.last_page) {
-      hasMore.value = false
-    }
+
+    console.log(res.data)
     // posts.value = res.data.posts.data
     posts.value = [...posts.value, ...res.data.posts.data]
     views.value = { ...views.value, ...res.data.views }
@@ -93,6 +93,10 @@ async function getPosts() {
     shares.value = { ...shares.value, ...res.data.shares }
     currentPage.value += 1
     loading.value = false
+
+    if (res.data.posts.current_page >= res.data.posts.last_page) {
+      hasMore.value = false
+    }
   } catch (error) {
     console.log('Không lấy được thông tin!', error)
   }
@@ -225,7 +229,7 @@ const loadMoreObserver = new IntersectionObserver(
   width: 100%;
 }
 
-.no__post{
+.no__post {
   text-align: center;
   font-weight: 600;
 }

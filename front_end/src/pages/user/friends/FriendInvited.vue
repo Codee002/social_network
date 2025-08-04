@@ -16,7 +16,7 @@
     </div>
     <div v-else>
       <div v-for="relation in listInvited" :key="relation.id" class="col-12 col-lg-6 col-xl-4 col-xxl-3 mb-4">
-        <router-link :to="{ name: profile, params: { user_id: relation.user.id } }" :key="relation.id">
+        <router-link :to="{ name: 'profile', params: { user_id: relation.user.id } }" :key="relation.id">
           <div class="friendInvite__main__info">
             <img
               :src="relation.user.profile.avatar

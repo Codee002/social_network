@@ -32,7 +32,7 @@
     <div v-if="friendSearch.length != 0" class="row">
       <div class="col-12 col-lg-6 mb-3" v-for="(friend, index) in friendSearch" :key="index">
         <div class="friendList__main__info">
-          <router-link :to="{ name: profile, params: { user_id: friend.user.id } }" class="d-flex">
+          <router-link :to="{ name: 'profile', params: { user_id: friend.user.id } }" class="d-flex">
             <img
               :src="
                 friend.user.profile.avatar
@@ -51,7 +51,7 @@
             <li>
               <router-link
                 class="dropdown-item"
-                :to="{ name: profile, params: { user_id: friend.user.id } }"
+                :to="{ name: 'profile', params: { user_id: friend.user.id } }"
                 style="color: var(--font-color)"
               >
                 Xem trang cá nhân
