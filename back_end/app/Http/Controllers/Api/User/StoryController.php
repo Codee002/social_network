@@ -22,9 +22,18 @@ class StoryController extends Controller
 
         $stories = Story::with('user.profile')
             ->with("media")
-            ->where('stories.rule', 'friend')
-            ->whereIn('stories.user_id', $friendIds)
-            ->orwhere('stories.user_id', $currentUserId)
+        // ->where('stories.rule', 'friend')
+        // ->whereIn('stories.user_id', $friendIds)
+        // ->orwhere('stories.user_id', $currentUserId)
+            ->where(function ($query) use ($friendIds, $currentUserId) {
+                $query->where(function ($q) use ($friendIds) {
+                    $q->where('stories.rule', 'friend')
+                        ->whereIn('stories.user_id', $friendIds);
+                })
+                    ->orWhere('stories.user_id', $currentUserId);
+            })
+            ->whereDate('stories.created_at', '>=', now()->subDays(3))
+
             ->leftJoin('watches as w', function ($join) use ($currentUserId) {
                 $join->on('stories.id', '=', 'w.story_id')
                     ->where('w.user_id', '=', $currentUserId);
