@@ -302,4 +302,55 @@ class ConversationController extends Controller
         }
 
     }
+
+    public function sendPostMessage(Request $request)
+    {
+        $owner   = Auth::user();
+        $usersId = $request['user'];
+        try {
+
+            foreach ($usersId as $userId) {
+
+                // Tìm cuộc trò chuyện
+                $conversation = Conversation::findConversationUser($owner->id, $userId);
+                if (! $conversation) {
+
+                    // Tạo cuộc trò chuyện
+                    $conversation = Conversation::query()->create([
+                        'type' => 'friend',
+                    ]);
+                    $conversation->addUser($owner->id);
+                    $conversation->addUser($userId);
+                }
+
+                $message = Message::create([
+                    "conversation_id" => $conversation->id,
+                    "user_id"         => $owner->id,
+                    "content"         => $request['content'],
+                    'type'            => "message",
+                ]);
+                $message->conversation->update([
+                    'updated_at' => now(),
+                ]);
+
+                // Gửi broadcast cho bản thân
+                broadcast(new ReceiveMessageRequest($message->load("medias"), $owner->id));
+
+                // Gửi broadcast cho người nhận
+                broadcast(new ReceiveMessageRequest($message->load("medias"), $userId));
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Gửi tin nhắn thành công",
+            ]);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi khi gửi tin nhắn",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+    }
 }
