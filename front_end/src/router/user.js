@@ -12,6 +12,7 @@ import SettingPage from '@/pages/user/SettingPage'
 import SettingInfo from '@/pages/user/settings/SettingInfo'
 import SettingSecurity from '@/pages/user/settings/SettingSecurity'
 import SettingTheme from '@/pages/user/settings/SettingTheme'
+import AccountBan from '@/pages/user/account_ban/AccountBan'
 
 const userRoutes = [
   {
@@ -147,6 +148,17 @@ const userRoutes = [
             },
           },
         ],
+      },
+
+      // Trang thông báo tài khoản bị ban
+      {
+        path: 'account/ban',
+        component: AccountBan,
+        name: 'account.ban',
+        meta: {
+          title: 'Tài khoản bị khóa',
+          requiresAuth: true,
+        },
       },
     ],
   },
