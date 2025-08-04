@@ -1,5 +1,5 @@
 <template>
-  <div v-if="user && !loading">
+  <div v-if="user && !loading" :key="$route.fullPath">
     <div class="profile__header">
       <div class="profile__inner profile__inner--header">
         <profile-cover :srcThumb="srcThumb" :relationStatus="relationStatus" :user="user"></profile-cover>
@@ -11,6 +11,7 @@
           @addRelation="addRelation"
           @changeRelation="changeRelation"
           @changeMode="changeMode"
+          :owner="owner"
         ></profile-overview>
         <profile-nav :mode="mode" @changeMode="changeMode"></profile-nav>
       </div>
@@ -22,9 +23,18 @@
       :owner="owner"
       :relationStatus="relationStatus"
       @changeMode="changeMode"
+      :listFriend="listFriend"
     ></profile-content>
-    <friend-page :relationStatus="relationStatus" v-if="mode == 'friend'"></friend-page>
-    <interview-component :showListFriend="false"  @changeMode="changeMode" :relationStatus="relationStatus" :user="user" style="margin:auto; width: 60%;"></interview-component>
+    <friend-page :relationStatus="relationStatus" :listFriend="listFriend" v-if="mode == 'friend'"></friend-page>
+    <profile-story v-if="mode == 'story'" :owner="owner"></profile-story>
+    <interview-component
+      :showListFriend="false"
+      @changeMode="changeMode"
+      :relationStatus="relationStatus"
+      :user="user"
+      style="margin: auto; width: 60%"
+      v-if="mode == 'intro'"
+    ></interview-component>
     <div style="min-height: 200vh" class="content"></div>
   </div>
 
@@ -42,9 +52,14 @@ import InterviewComponent from '@/pages/user/profiles/InterviewComponent.vue'
 import axios from 'axios'
 import auth from '@/utils/auth'
 import { useRoute } from 'vue-router'
+import ProfileStory from '@/pages/user/profiles/ProfileStory.vue'
 
 const props = defineProps({
   owner: {
+    default: [],
+  },
+
+  listFriend: {
     default: [],
   },
 })
@@ -109,8 +124,14 @@ onMounted(async () => {
 })
 
 watch(relation, () => {
+  // Trường hợp xóa kết bạn
+  if (relation.value == 'stranger') relationStatus.value = 'stranger'
+
   // Chỉ xét lại khi trang cá nhân đang xem là người gửi hoặc người nhận kb
-  if (user.value.id == relation.value.sender_id || user.value.id == relation.value.received_id) {
+  if (
+    (user.value.id == relation.value.sender_id || user.value.id == relation.value.received_id) &&
+    user.value.id != props.owner.id
+  ) {
     relationStatus.value = auth.getRelationStatus(relation.value)
     if (relationStatus.value == 'friend_pending') {
       // Phía người gửi (đang xem trang người nhận)

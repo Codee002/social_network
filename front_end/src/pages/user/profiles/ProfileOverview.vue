@@ -80,7 +80,7 @@
     <div class="profile__info">
       <h1 class="profile__name">{{ user.profile.name }}</h1>
       <div class="profile__preview">
-        <div class="profile__count profile__count--friend" href="#">2 người bạn</div>
+        <!-- <div class="profile__count profile__count--friend" href="#">2 người bạn</div> -->
       </div>
     </div>
     <div class="profile__action">
@@ -94,10 +94,14 @@
         <i class="fa-solid fa-plus"></i>
         Thêm vào tin
       </button>
-      <button class="profile__btn profile__btn--secondary btn" v-if="relationStatus == 'owner'">
+      <router-link
+        :to="{ name: 'setting.info' }"
+        class="profile__btn profile__btn--secondary btn"
+        v-if="relationStatus == 'owner'"
+      >
         <i class="fa-solid fa-pen"></i>
         Chỉnh sửa trang cá nhân
-      </button>
+      </router-link>
 
       <!-- Bạn bè -->
       <button class="profile__btn profile__btn--secondary btn" v-if="relationStatus == 'friend'">
@@ -160,31 +164,179 @@
         <i class="fa-solid fa-check"></i>
         Đã gửi lời mời
       </button>
-      <!-- Modal -->
-      <div
-        class="modal modal__upload modal__upload--story"
-        id="modal__upload--story"
-        tabindex="-1"
-        aria-labelledby="modal-label"
-        aria-hidden="true"
+
+      <!-- Nút tùy chọn -->
+      <button
+        v-if="relationStatus != 'owner'"
+        @click="toggleMenu"
+        class="post__more profile__btn profile__btn--secondary btn"
       >
-        <div class="modal-dialog modal-dialog-centered">
-          <form class="modal-content" action="/story/add" method="post" enctype="multipart/form-data">
+        <i class="fa-solid fa-ellipsis-vertical"></i>
+      </button>
+
+      <ul class="dropdown-menu menu__post show" v-if="isMenu">
+        <!-- Gửi tin nhắn -->
+        <a href="#" @click="startChat(user.id)" class="d-flex">
+          <nav-component>
+            <template v-slot:icon>
+              <i class="fa-solid fa-message"></i>
+            </template>
+            <template v-slot:des>Gửi tin nhắn</template>
+          </nav-component>
+        </a>
+
+        <hr />
+        <!-- Tố cáo -->
+        <a href="#" class="d-flex" data-bs-toggle="modal" data-bs-target="#modal__report__account">
+          <nav-component>
+            <template v-slot:icon>
+              <i class="fa-solid fa-flag text-danger"></i>
+            </template>
+            <template v-slot:des><p class="text-danger">Tố cáo</p></template>
+          </nav-component>
+        </a>
+
+        <!-- Hủy kết bạn -->
+        <a
+          v-if="relationStatus == 'friend'"
+          href="#"
+          class="d-flex"
+          data-bs-toggle="modal"
+          data-bs-target="#modal__removeFriend"
+        >
+          <nav-component>
+            <template v-slot:icon>
+              <i class="text-danger fa-solid fa-user-minus"></i>
+            </template>
+            <template v-slot:des><p class="text-danger">Hủy kết bạn</p></template>
+          </nav-component>
+        </a>
+      </ul>
+
+      <!-- Modal -->
+      <div class="modal" id="modal__removeFriend">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <!-- Modal Header -->
             <div class="modal-header">
-              <h5 class="modal-title" id="modal-label">Tạo tin</h5>
+              <h5 class="modal-title">Xóa kết bạn</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal-body">
+              Bạn có chắc chắn xóa kết bạn với
+              <strong>{{ user.profile.name }}</strong>
+              ?
+            </div>
+
+            <!-- Modal footer -->
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+              <button
+                type="submit"
+                @click="unFriend(relation.id, 'friend', 'delete')"
+                class="btn btn-danger"
+                data-bs-dismiss="modal"
+              >
+                Xóa
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal tô cáo -->
+      <div class="modal" id="modal__report__account" tabindex="-1" aria-labelledby="modal-label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="modal-label">Tố cáo người dùng</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-              <div class="upload__preview--story">
-                <img class="rounded" alt="" />
-                <input class="upload__story form-control" type="file" name="story" accept="image/*" />
+              <!-- Bạn bè -->
+              <div class="form-floating mb-2 mt-2">
+                <p class="d-contents">Lý do:</p>
+                <textarea type="text" rows="5" v-model="reportInput" placeholder="Lý do tố cáo..." />
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="upload__btn btn upload__btn--secondary upload__reset">Hủy</button>
-              <button type="submit" class="upload__btn btn upload__btn--primary upload__save hide">Cập nhật</button>
+              <button type="button" class="upload__btn btn upload__btn--secondary" data-bs-dismiss="modal">Hủy</button>
+              <button
+                type="submit"
+                class="upload__btn btn btn-danger"
+                :disabled="reportInput.length < 1"
+                @click="reportAccount"
+                data-bs-dismiss="modal"
+              >
+                Gửi tố cáo
+              </button>
             </div>
-          </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal tạo tin-->
+      <div class="modal modal__upload modal__upload--cover" id="modal__upload--story" tabindex="-1" ref="thumbModal">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title text-center" id="modal-label">Tạo tin</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="upload__preview--avt d-flex flex-column align-items-center">
+                <div v-if="mediaFilesStory.length == 0">
+                  <p>Chọn phương tiện để đăng tin</p>
+                </div>
+                <div v-if="mediaFilesStory.length != 0" class="">
+                  <div
+                    v-for="(file, index) in mediaFilesStory"
+                    :key="index"
+                    class="media-item media-preview"
+                    style="width: unset"
+                  >
+                    <i @click="removeFileStory(index)" class="fa-solid fa-xmark media__deleteBtn"></i>
+                    <img :src="file.url" />
+                  </div>
+                </div>
+                <div class="post__option" style="display: flex; width: 100%">
+                  <div class="post__item post__item--image" @click="triggerFileInputStory">
+                    <i class="fa-solid fa-images text-success me-2"></i>
+                    <span>Hình ảnh</span>
+                  </div>
+                  <div class="post__item post__item--image" @click="triggerFileInputStory">
+                    <i class="fa-brands fa-youtube text-danger me-2"></i>
+                    <span>Video</span>
+                  </div>
+                </div>
+                <input
+                  class="upload__avt form-control d-none"
+                  @change="handleFilesChangeStory"
+                  type="file"
+                  accept="image/*,video/*"
+                  ref="fileInputStory"
+                />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                data-bs-dismiss="modal"
+                type="button"
+                class="upload__btn btn upload__btn--secondary upload__reset"
+              >
+                Hủy
+              </button>
+              <button
+                class="upload__btn btn upload__btn--primary upload__save hide"
+                @click="createStory"
+                :disabled="mediaFilesStory.length == 0"
+              >
+                Tạo tin
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -196,10 +348,12 @@ import router from '@/router'
 import axios from 'axios'
 import { defineProps, defineEmits, ref } from 'vue'
 import { useToast } from 'vue-toastification'
+import NavComponent from '@/layouts/partials/NavComponent.vue'
 
 const toast = useToast()
 const conversation = ref()
-defineProps({
+const props = defineProps({
+  owner: {},
   user: {
     type: Object,
     default: null,
@@ -213,6 +367,9 @@ defineProps({
     default: 'owner',
   },
 })
+
+const user = ref({})
+Object.assign(user.value, props.user)
 
 // Đổi avatar
 const mediaFiles = ref([])
@@ -267,11 +424,12 @@ async function storeAvatar() {
   try {
     let formData = new FormData()
     formData.append('avatar', mediaFiles.value[0].file)
-    await axios.post(`storeAvatar`, formData, {
+    let res = await axios.post(`storeAvatar`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     })
+    user.value.profile.avatar = res.data.avatar 
     window.bootstrap.Modal.getInstance(avatarModal.value).hide()
 
     toast.success('Đổi ảnh đại diện thành công', {
@@ -282,7 +440,92 @@ async function storeAvatar() {
   }
 }
 
+// Mở menu
+const isMenu = ref(false)
+// Mở menu
+function toggleMenu() {
+  isMenu.value = !isMenu.value
+}
+
+// -------------- Tố cáo ----------------------------
+const reportInput = ref('')
+async function reportAccount() {
+  let formData = new FormData()
+  console.log(props.user)
+  console.log(props.owner)
+  formData.append('content', reportInput.value)
+  formData.append('received_id', props.user.id)
+  formData.append('score', -3)
+  formData.append('user_id', props.owner.id)
+
+  try {
+    let res = await axios.post(`reportAccount`, formData)
+    toast.success(res.data.message, {
+      position: 'bottom-right',
+    })
+  } catch (error) {
+    console.log('Tố cáo người dùng thất bại!', error)
+    toast.error(error.response.data.message, {
+      position: 'bottom-right',
+    })
+  }
+}
+
 // -----------------------------------------
+
+// ------- Xóa kb ----------
+function unFriend(relationId, type, status) {
+  emit('changeRelation', relationId, type, status)
+}
+// ----------------
+
+// ---------------------Đăng Story---------------------
+const thumbModal = ref()
+const mediaFilesStory = ref([])
+const fileInputStory = ref([])
+const handleFilesChangeStory = (event) => {
+  mediaFilesStory.value = []
+  const files = Array.from(event.target.files)
+  files.forEach((file) => {
+    const url = URL.createObjectURL(file)
+    mediaFilesStory.value.push({
+      file,
+      url,
+      type: file.type,
+    })
+  })
+}
+
+const triggerFileInputStory = () => {
+  fileInputStory.value.click()
+}
+
+const removeFileStory = (index) => {
+  mediaFilesStory.value.splice(index, 1)
+}
+
+async function createStory() {
+  if (mediaFilesStory.value.length == 0) return
+  try {
+    let formData = new FormData()
+    formData.append('media', mediaFilesStory.value[0].file)
+    console.log(mediaFilesStory.value[0].file)
+    await axios.post(`story/createStory`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    window.bootstrap.Modal.getInstance(thumbModal.value).hide()
+    toast.success('Đăng tin thành công', {
+      position: 'bottom-right',
+    })
+  } catch (error) {
+    console.log('Đăng tin thất bại!', error)
+    toast.error('Có lỗi khi đăng tin', {
+      position: 'bottom-right',
+    })
+  }
+}
 </script>
 
 <style scoped>
@@ -437,5 +680,27 @@ async function storeAvatar() {
 
 .post__item:hover {
   background-color: var(--hover-color);
+}
+
+/* Tùy chọn menu */
+.post__more {
+  position: unset !important;
+  display: flex;
+  font-size: 1.2rem;
+  align-items: start;
+  justify-content: end;
+}
+
+.menu__post {
+  position: absolute;
+  background-color: var(--main-extra-bg);
+  width: 22rem;
+  top: 35rem !important;
+  transform: none !important;
+  border: none;
+  border-radius: 0 0 0.5rem 0.5rem;
+  box-shadow: rgba(0, 0, 0, 0.2) -0.1rem 0.5rem 0.5rem 0.25rem;
+  right: -8rem !important;
+  padding: 0.6rem;
 }
 </style>

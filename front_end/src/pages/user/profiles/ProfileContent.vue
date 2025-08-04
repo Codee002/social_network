@@ -19,7 +19,12 @@
           :relationStatus="relationStatus"
           v-show="acceptView(post.rule)"
           :ref="(el) => (postRefs[post.id] = el)"
+          :listFriend="listFriend"
         ></post-component>
+      </div>
+
+      <div class="no-post" v-else>
+        <h6>Không tìm thấy bài viết</h6>
       </div>
     </div>
   </div>
@@ -35,7 +40,6 @@ import axios from 'axios'
 
 const emit = defineEmits(['changeMode'])
 function changeMode(mode) {
-  console.log('CONTENT changemode', mode)
   emit('changeMode', mode)
 }
 
@@ -43,6 +47,9 @@ const props = defineProps({
   user: {},
   owner: {},
   relationStatus: {},
+  listFriend: {
+    default: [],
+  },
 })
 
 const posts = ref()
@@ -196,5 +203,17 @@ async function storeView(postId, userId, score) {
   flex-direction: column;
   gap: 1rem;
   padding: 1rem;
+  
 }
+
+.no-post {
+  background-color: var(--main-extra-bg);
+  border-radius: 0.75rem;
+  box-shadow: rgba(0, 0, 0, 0.1) 0.1rem 0.1rem 0.1rem;
+  height: 10rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 </style>

@@ -13,7 +13,7 @@
           <input
             type="text"
             class="profile__card__txt profile__card__txt--bio text-center"
-            style="width: 100%; display: none"
+            style="width: 100%; display: none; background: none; border: none"
             v-model="bio"
             @blur="hideInput"
             @keyup.enter="handleEnter"
@@ -58,7 +58,7 @@
         </div>
         <div class="profile__card__content row" v-if="listFriend.length != 0">
           <div class="col-4 p-1" v-for="(friend, index) in listFriend" :key="index">
-            <router-link :to="{ name: 'profile', params: { user_id: user.id } }">
+            <router-link :to="{ name: 'profile', params: { user_id: friend.user.id } }">
               <img
                 :src="
                   friend.user.profile.avatar
@@ -78,7 +78,7 @@
 
 <script setup>
 import axios from 'axios'
-import { computed, defineProps, defineEmits, ref } from 'vue'
+import { computed, defineProps, defineEmits, ref, onMounted } from 'vue'
 const emit = defineEmits(['changeMode'])
 const props = defineProps({
   user: {},
@@ -89,10 +89,14 @@ const props = defineProps({
 })
 
 const inputBio = ref()
-const bio = ref()
-const bioShow = ref()
-Object.assign(bio, props.user.profile.bio)
-Object.assign(bioShow, props.user.profile.bio)
+const bioShow = ref('')
+const bio = ref('')
+
+onMounted(() => {
+  bioShow.value = props.user.profile.bio
+})
+
+console.log(props.user.profile.bio)
 
 function changeMode(mode) {
   emit('changeMode', mode)
@@ -112,15 +116,14 @@ function hideInput(event) {
   event.target.style.display = 'none'
 }
 
-async function handleEnter()
-{
-    try {
+async function handleEnter() {
+  try {
     let res = await axios.post(`/changeBio`, {
-      bio:bio.value
+      bio: bio.value,
     })
     bio.value = res.data.bio
-    bioShow.value = res.data.bioShow
-
+    bioShow.value = res.data.bio
+    inputBio.value.blur()
   } catch (error) {
     console.log('Lỗi khi cập nhật tiểu sử', error)
   }
@@ -191,6 +194,11 @@ async function handleEnter()
   line-height: 1.4rem;
   font-weight: 600;
   margin-bottom: 0.65rem;
+}
+
+input.profile__card__txt:focus {
+  border: none !important;
+  outline: none !important;
 }
 
 .profile__card__txt i {

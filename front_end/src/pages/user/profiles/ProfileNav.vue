@@ -8,9 +8,9 @@
 
     <icon-nav :isActive="{ 'is-active': mode === 'story' }" @click="changeMode('story')"> <p>Story</p></icon-nav>
 
-    <icon-nav :isActive="{ 'is-active': mode === 'image' }" @click="changeMode('image')"> <p>Hình ảnh</p></icon-nav>
+    <!-- <icon-nav :isActive="{ 'is-active': mode === 'image' }" @click="changeMode('image')"> <p>Hình ảnh</p></icon-nav>
 
-    <icon-nav :isActive="{ 'is-active': mode === 'video' }" @click="changeMode('video')"> <p>Video</p></icon-nav>
+    <icon-nav :isActive="{ 'is-active': mode === 'video' }" @click="changeMode('video')"> <p>Video</p></icon-nav> -->
   </div>
 </template>
 

@@ -73,7 +73,7 @@
 import axios from 'axios'
 import { defineProps, ref } from 'vue'
 import { useToast } from 'vue-toastification'
-defineProps({
+const props = defineProps({
   srcThumb: {
     type: String,
     require: true,
@@ -88,6 +88,9 @@ defineProps({
     default: null,
   },
 })
+
+const user = ref({})
+Object.assign(user.value, props.user)
 
 const thumbModal = ref()
 const mediaFiles = ref([])
@@ -122,12 +125,13 @@ async function storeThumb() {
     let formData = new FormData()
     formData.append('thumb', mediaFiles.value[0].file)
     console.log(mediaFiles.value[0].file)
-    await axios.post(`storeThumb`, formData, {
+    let res = await axios.post(`storeThumb`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     })
     window.bootstrap.Modal.getInstance(thumbModal.value).hide()
+    user.value.profile.thumb = res.data.thumb
     toast.success('Đổi ảnh bìa thành công', {
       position: 'bottom-right',
     })

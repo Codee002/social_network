@@ -68,7 +68,7 @@
                     />
                   </a>
                   <div class="post__detail">
-                    <a class="post__name">Trần Thanh Phúc</a>
+                    <a class="post__name">{{ user.profile.name }}</a>
                     <div class="post__privacy">
                       <i class="fa-solid fa-earth-americas" :class="{ 'd-none': form.rule != 'public' }"></i>
                       <i class="fa-solid fa-user" :class="{ 'd-none': form.rule != 'friend' }"></i>
