@@ -22,6 +22,7 @@ class User extends Authenticatable
         'password',
         'email',
         'email_active',
+        'email_token',
         'two_step_auth',
         'token',
         'status',

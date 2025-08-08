@@ -20,6 +20,15 @@ Route::apiResource("/test", TestController::class);
 Route::prefix("/auth")->name("auth.")->group(function () {
     Route::post("register", [AuthController::class, 'register'])->name("register");
     Route::post("login", [AuthController::class, 'login'])->name("login");
+    Route::post("forgot", [AuthController::class, 'forgot'])->name("forgot");
+    Route::post("getResetUser", [AuthController::class, 'getResetUser'])->name("getResetUser");
+    Route::post("getTokenForgot", [AuthController::class, 'getTokenForgot'])->name("getTokenForgot");
+    Route::post("checkToken", [AuthController::class, 'checkToken'])->name("checkToken");
+    Route::post("getAccount", [AuthController::class, 'getAccount'])->name("getAccount");
+    Route::post("handleReset", [AuthController::class, 'handleReset'])->name("handleReset");
+    Route::post("getTokenActive", [AuthController::class, 'getTokenActive'])->name("getTokenActive");
+    Route::post("activeEmail", [AuthController::class, 'activeEmail'])->name("activeEmail");
+    Route::post("checkLoginToken", [AuthController::class, 'checkLoginToken'])->name("checkLoginToken");
     Route::middleware('auth:sanctum')->post("logout", [AuthController::class, 'logout'])->name("logout");
 });
 
@@ -28,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // User
     Route::get('/owner', [UserController::class, 'getOwner']);
     Route::get('/user/{id}', [UserController::class, 'getUser']);
+    Route::get('/searchProfile', [UserController::class, 'searchProfile']);
     Route::get('/getRelation/{owner_id}/{user_id}', [UserController::class, 'getRelation']);
     // Route::get('/getFriends/{id}', [UserController::class, 'getFriends']);
     Route::get('/getPosts/{id}', [UserController::class, 'getPosts']);
@@ -36,6 +46,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/getInvited/{id}', [UserController::class, 'getInvited']);
     Route::get('/getNotifications/{id}', [UserController::class, 'getNotifications']);
     Route::post('/readNotification/{id}', [UserController::class, 'readNotification']);
+
+    // Setting
     Route::post('/storeAvatar', [UserController::class, 'storeAvatar']);
     Route::post('/storeThumb', [UserController::class, 'storeThumb']);
     Route::post('/changeEmailAndPhone', [UserController::class, 'changeEmailAndPhone']);
@@ -45,7 +57,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/changeAddress', [UserController::class, 'changeAddress']);
     Route::post('/changePassword', [UserController::class, 'changePassword']);
     Route::post('/changeBio', [UserController::class, 'changeBio']);
+    Route::post('/twoStepAuth', [UserController::class, 'twoStepAuth']);
+
     Route::get('/getFavoritePosts', [UserController::class, 'getFavoritePosts']);
+    Route::get('/getSharePosts/{id}', [UserController::class, 'getSharePosts']);
     Route::post('/reportAccount', [UserController::class, 'reportAccount']);
 
     // Relation
@@ -57,6 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get("conversation/get", [ConversationController::class, "getConversation"]);
     Route::get("conversation/message/{conversation_id}", [ConversationController::class, "getMessage"]);
     Route::post("conversation/sendMessage", [ConversationController::class, "sendMessage"]);
+    Route::post("conversation/removeMessage", [ConversationController::class, "removeMessage"]);
     Route::post("conversation/sendPostMessage", [ConversationController::class, "sendPostMessage"]);
     Route::post("conversation/createConversation", [ConversationController::class, "createConversation"]);
     Route::post("conversation/startCall", [ConversationController::class, "startCall"]);
@@ -70,6 +86,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post("post/storeView/", [PostController::class, "storeView"]);
     Route::post("post/storeShare/", [PostController::class, "storeShare"]);
     Route::post("post/storeReport/", [PostController::class, "storeReport"]);
+    Route::post("post/removePost/", [PostController::class, "removePost"]);
+    Route::post("post/removeComment/", [PostController::class, "removeComment"]);
     Route::get("post/getDashBoardPosts", [PostController::class, "getDashBoardPosts"]);
 
     // Story
