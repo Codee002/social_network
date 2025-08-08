@@ -5,7 +5,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class UpdateEmailPhoneRequest extends FormRequest
+class UpdatePasswordRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,28 +22,25 @@ class UpdateEmailPhoneRequest extends FormRequest
      */
     public function rules(): array
     {
-        $user    = request()->user();
-        $profile = $user->profile;
         return [
-            "email" => "required|email|unique:users,email," . $user['id'],
-            "phone" => ["required", "regex:/^(03|05|07|08|09|01[2|6|8|9])+([0-9]{8})\b$/", "unique:profiles,phone," . $profile['id']],
+            'password' => ['required', 'min:8', 'max:20', 'confirmed'],
         ];
     }
 
     public function messages()
     {
         return [
-            "required"     => ':attribute không được rỗng',
-            "phone.regex"  => "Số điện thoại không hợp lệ",
-            "email.unique" => 'Email đã tồn tại',
-            "phone.unique" => 'Số điện thoại đã tồn tại',
+            'password.min'       => 'Mật khẩu phải có độ dài từ 8 - 20 ký tự',
+            'password.max'       => 'Mật khẩu phải có độ dài từ 8 - 20 ký tự',
+            'password.confirmed' => "Mật khẩu nhập lại không trùng khớp",
         ];
     }
 
     public function attributes()
     {
         return [
-            "phone" => "Số điện thoại",
+            'password'              => 'Mật khẩu',
+            'password_confirmation' => 'Mật khẩu',
         ];
     }
 
