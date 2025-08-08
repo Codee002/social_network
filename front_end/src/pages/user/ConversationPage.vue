@@ -55,6 +55,15 @@ onMounted(async () => {
     .error((error) => {
       console.error('Echo error:', error)
     })
+
+  // Nhận tin nhắn bị thu hồi
+  window.Echo.private(`user.${props.owner.id}`)
+    .listen('.conversation.received.remove', (e) => {
+      conversations.value = e.conversations
+    })
+    .error((error) => {
+      console.error('Echo error:', error)
+    })
 })
 
 watchEffect(() => {
@@ -70,6 +79,8 @@ watchEffect(() => {
     // Lấy tin nhắn gần nhất
     if (conversation.message == null) {
       currentMessages.value[conversation.id] = 'Chưa có tin nhắn'
+    } else if (conversation.message.deleted_at != null) {
+      currentMessages.value[conversation.id] = 'Tin nhắn đã bị thu hồi'
     } else if (
       conversation.message.type == 'message' ||
       conversation.message.type == 'video' ||

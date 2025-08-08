@@ -35,6 +35,7 @@
       style="margin: auto; width: 60%"
       v-if="mode == 'intro'"
     ></interview-component>
+    <profile-share :user="user" :owner="owner" v-if="mode == 'share'"></profile-share>
     <div style="min-height: 200vh" class="content"></div>
   </div>
 
@@ -48,6 +49,7 @@ import ProfileOverview from './profiles/ProfileOverview.vue'
 import ProfileNav from './profiles/ProfileNav.vue'
 import ProfileContent from './profiles/ProfileContent.vue'
 import FriendPage from '@/pages/user/FriendPage.vue'
+import ProfileShare from '@/pages/user/profiles/ProfileShare.vue'
 import InterviewComponent from '@/pages/user/profiles/InterviewComponent.vue'
 import axios from 'axios'
 import auth from '@/utils/auth'

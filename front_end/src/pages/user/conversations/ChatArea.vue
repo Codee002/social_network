@@ -45,35 +45,53 @@
                   {{ message.userName }}
                 </span>
               </div>
-              <!-- Ảnh và video -->
-              <div
-                v-if="message.medias.length != 0"
-                class="d-flex flex-wrap align-items-end"
-                :class="{ 'mt-2': conversation.type == 'friend' }"
-                style="width: 60%"
-              >
-                <div v-for="(media, index) in message.medias" :key="index" class="chat-message__media">
-                  <a :href="$backendBaseUrl + media.path">
-                    <img v-if="media.type == 'image'" :src="$backendBaseUrl + media.path" />
-                    <video v-else-if="media.type == 'video'" :src="$backendBaseUrl + media.path" controls />
-                  </a>
+
+              <div v-if="message.deleted_at == null">
+                <!-- Ảnh và video -->
+                <div
+                  v-if="message.medias.length != 0"
+                  class="d-flex flex-wrap align-items-end"
+                  :class="{ 'mt-2': conversation.type == 'friend' }"
+                  style="width: 60%"
+                >
+                  <div v-for="(media, index) in message.medias" :key="index" class="chat-message__media">
+                    <a :href="$backendBaseUrl + media.path">
+                      <img v-if="media.type == 'image'" :src="$backendBaseUrl + media.path" />
+                      <video v-else-if="media.type == 'video'" :src="$backendBaseUrl + media.path" controls />
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Tin nhắn bình thưong -->
+                <div class="chat-message" v-if="message.content != null">
+                  <div :class="{ type__video: message.type == 'video' || message.type == 'call' }">
+                    <i v-if="message.type == 'call'" class="fa-solid fa-phone"></i>
+                    <i v-if="message.type == 'video'" class="fa-solid fa-video"></i>
+                    <p class="d-contents mb-0">
+                      {{ message.content }}
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div class="chat-message" v-if="message.content != null">
-                <div :class="{ type__video: message.type == 'video' || message.type == 'call' }">
-                  <i v-if="message.type == 'call'" class="fa-solid fa-phone"></i>
-                  <i v-if="message.type == 'video'" class="fa-solid fa-video"></i>
-                  <p class="d-contents mb-0">
-                    {{ message.content }}
-                  </p>
+
+              <!-- Tin nhắn bị thu hồi -->
+              <div class="chat-message" v-if="message.deleted_at != null">
+                <div>
+                  <i class="d-contents mb-0">Tin nhắn đã bị thu hồi</i>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Người dùng hiện tại -->
+          <!-- Người dùng hiện tại và tin nhắn k thu hồi -->
           <div class="is-owner" v-if="message.user_id == owner.id">
-            <div class="d-flex flex-column align-items-end" style="width: 100%">
+            <div class="d-flex flex-column align-items-end chat-message__container" v-if="message.deleted_at == null">
+              <i
+                data-bs-toggle="modal"
+                :data-bs-target="'#modal__remove__message' + message.id"
+                class="fa-solid fa-xmark remove-message"
+              ></i>
+
               <!-- Ảnh và video -->
               <div
                 v-if="message.medias.length != 0"
@@ -89,13 +107,54 @@
               </div>
 
               <!-- Tin nhắn -->
-              <div class="chat-message" v-if="message.content != null">
-                <div :class="{ type__video: message.type == 'video' || message.type == 'call' }">
-                  <i v-if="message.type == 'call'" class="fa-solid fa-phone"></i>
-                  <i v-if="message.type == 'video'" class="fa-solid fa-video"></i>
-                  <p class="d-contents mb-0">
-                    {{ message.content }}
-                  </p>
+              <div style="width: 100%" class="d-flex justify-content-end chat-message-container">
+                <div class="chat-message" v-if="message.content != null">
+                  <div :class="{ type__video: message.type == 'video' || message.type == 'call' }">
+                    <i v-if="message.type == 'call'" class="fa-solid fa-phone"></i>
+                    <i v-if="message.type == 'video'" class="fa-solid fa-video"></i>
+                    <p class="d-contents mb-0">
+                      {{ message.content }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Modal tin nhắn -->
+                <div
+                  class="modal"
+                  :id="'modal__remove__message' + message.id"
+                  tabindex="-1"
+                  aria-labelledby="modal-label"
+                  aria-hidden="true"
+                >
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="modal-label">Thu hồi tin nhắn</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="mb-2 mt-2">
+                          <p>
+                            Bạn chắc chắn thu hồi tin nhắn?
+                            <b></b>
+                          </p>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="upload__btn btn upload__btn--secondary" data-bs-dismiss="modal">
+                          Hủy
+                        </button>
+                        <button
+                          type="submit"
+                          class="upload__btn btn btn-danger"
+                          @click="removeMessage(message.id)"
+                          data-bs-dismiss="modal"
+                        >
+                          Thu hồi tin nhắn
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -103,6 +162,14 @@
               <div v-if="uploadProgress > 0 && uploadProgress < 100" class="upload-bar">
                 <div class="progress" :style="{ width: uploadProgress + '%' }"></div>
                 <span>Đang upload: {{ uploadProgress }}%</span>
+              </div>
+            </div>
+
+            <div v-else-if="message.deleted_at != null">
+              <div class="chat-message">
+                <div>
+                  <i class="d-contents mb-0">Tin nhắn đã bị thu hồi</i>
+                </div>
               </div>
             </div>
           </div>
@@ -161,6 +228,7 @@ import axios from 'axios'
 import { computed, onMounted, ref, watch, defineProps } from 'vue'
 import { useRoute } from 'vue-router'
 import { differenceInMinutes, format } from 'date-fns'
+import { useToast } from 'vue-toastification'
 // import AgoraRTC from 'agora-rtc-sdk-ng'
 
 const props = defineProps({
@@ -168,6 +236,7 @@ const props = defineProps({
   owner: {},
 })
 
+const toast = useToast()
 const content = ref('')
 const route = useRoute()
 const conversationId = computed(() => route.params.conversation_id)
@@ -186,6 +255,7 @@ onMounted(async () => {
     console.log('Không lấy được thông tin!', error)
   }
 
+  // Nhận tin nhắn
   window.Echo.private(`user.${props.owner.id}`)
     .listen('.conversation.received', (e) => {
       if (e.message.conversation_id == conversationId.value) {
@@ -196,10 +266,22 @@ onMounted(async () => {
       console.error('Echo error:', error)
     })
 
+  // Gửi tin nhắn
   window.Echo.private(`user.${props.owner.id}`)
     .listen('.conversation.sender', (e) => {
       if (e.message.conversation_id == conversationId.value) {
         conversation.value.messages.unshift(e.message)
+      }
+    })
+    .error((error) => {
+      console.error('Echo error:', error)
+    })
+
+  // Nhận tin nhắn bị thu hồi
+  window.Echo.private(`user.${props.owner.id}`)
+    .listen('.conversation.received.remove', (e) => {
+      if (e.message.conversation_id == conversationId.value) {
+        conversation.value.messages.find((message) => message.id == e.message.id).deleted_at = e.message.deleted_at
       }
     })
     .error((error) => {
@@ -350,6 +432,28 @@ async function startCall(conversationId) {
     console.log(error)
   }
 }
+
+// --------------- Thu hồi tin nhắn ----------
+async function removeMessage(messageId) {
+  console.log('REMOVE TIN NHAN ', messageId)
+  try {
+    let res = await axios.post(`/conversation/removeMessage`, {
+      message_id: messageId,
+    })
+    toast.success(res.data.message, {
+      position: 'bottom-right',
+    })
+    const messageDeleted = res.data.result
+    conversation.value.messages.find((message) => message.id == messageDeleted.id).deleted_at =
+      messageDeleted.deleted_at
+    console.log(res.data.result)
+  } catch (error) {
+    console.log('Thu hồi tin nhắn thất bại!', error)
+    toast.error(error.response.data.message, {
+      position: 'bottom-right',
+    })
+  }
+}
 </script>
 
 <style scoped>
@@ -437,6 +541,7 @@ async function startCall(conversationId) {
   justify-content: end;
   padding: 0.1rem;
   align-items: end;
+  position: relative;
 }
 
 .chat-content .chat-time {
@@ -453,14 +558,20 @@ async function startCall(conversationId) {
   word-wrap: break-word;
   text-align: left;
   width: fit-content;
+  position: relative;
 }
 
 .chat-content .is-owner .chat-message {
   background-color: var(--main1-color);
 }
 
+.chat-message__container {
+  position: relative;
+  width: 100%;
+}
+
 .chat-message .type__video {
-  padding: .5rem;
+  padding: 0.5rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -478,6 +589,25 @@ async function startCall(conversationId) {
   height: 2rem;
   border-radius: 50%;
   margin-right: 0.4rem;
+}
+
+.is-owner .remove-message {
+  display: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: -2rem;
+  /* right: 23rem; */
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.is-owner:hover .remove-message {
+  display: block;
+}
+
+.is-owner:hover .chat-message__container {
+  right: 3rem;
 }
 
 .chat-message p {
