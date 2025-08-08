@@ -63,6 +63,22 @@
               <template v-slot:des><p class="text-danger">Tố cáo</p></template>
             </nav-component>
           </a>
+
+          <!-- Xóa bài viết -->
+          <a
+            href="#"
+            class="d-flex"
+            v-if="owner.id == post.user_id"
+            data-bs-toggle="modal"
+            data-bs-target="#modal__remove__post"
+          >
+            <nav-component>
+              <template v-slot:icon>
+                <i class="fa-solid fa-xmark text-danger"></i>
+              </template>
+              <template v-slot:des><p class="text-danger">Xóa bài viết</p></template>
+            </nav-component>
+          </a>
         </ul>
 
         <!-- Modal gửi tin nhắn -->
@@ -165,6 +181,36 @@
                   data-bs-dismiss="modal"
                 >
                   Gửi tố cáo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal xóa bài viết -->
+        <div class="modal" id="modal__remove__post" tabindex="-1" aria-labelledby="modal-label" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modal-label">Xóa bài viết</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <div class="p-3 mb-2 mt-2">
+                  <p>Khi xóa bài viết thì không thể khôi phục. Bạn chắc chắn với quyết định này?</p>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="upload__btn btn upload__btn--secondary" data-bs-dismiss="modal">
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  class="upload__btn btn btn-danger"
+                  @click="removePost(post.id)"
+                  data-bs-dismiss="modal"
+                >
+                  Xóa bài viết
                 </button>
               </div>
             </div>
@@ -374,7 +420,11 @@
                   <!-- <li>
                     <div class="dropdown-item">Sửa bình luận</div>
                   </li> -->
-                  <li v-if="comment.user_id == owner.id">
+                  <li
+                    v-if="comment.user_id == owner.id"
+                    data-bs-toggle="modal"
+                    :data-bs-target="'#modal__remove__post' + comment.id"
+                  >
                     <div class="dropdown-item">Xóa bình luận</div>
                   </li>
                 </ul>
@@ -394,6 +444,42 @@
                 <a :href="$backendBaseUrl + media.path" v-else-if="media.type == 'video'">
                   <video :src="$backendBaseUrl + media.path" controls />
                 </a>
+              </div>
+            </div>
+
+            <!-- Modal xóa bình luận -->
+            <div
+              class="modal"
+              :id="'modal__remove__post' + comment.id"
+              tabindex="-1"
+              aria-labelledby="modal-label"
+              aria-hidden="true"
+            >
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="modal-label">Xóa bình luận</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="p-3 mb-2 mt-2">
+                      <p>Bạn chắc chắn xóa bình luận?</p>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="upload__btn btn upload__btn--secondary" data-bs-dismiss="modal">
+                      Hủy
+                    </button>
+                    <button
+                      type="submit"
+                      class="upload__btn btn btn-danger"
+                      @click="removeComment(comment.id)"
+                      data-bs-dismiss="modal"
+                    >
+                      Xóa bình luận
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -505,9 +591,18 @@ window.Echo.channel(`post.${props.post.id}`)
     console.error('Echo error:', error)
   })
 
+window.Echo.channel(`post.${props.post.id}`)
+  .listen('.comment.remove', (e) => {
+    postComments.value = postComments.value.filter((comment) => comment.id != e.comment.id)
+    console.log('BROADCAST REMOVE COMMENT: ', e.comment)
+  })
+  .error((error) => {
+    console.error('Echo error:', error)
+  })
+
 // Like
 window.Echo.channel(`post.${props.post.id}`)
-  .listen('.like.request', (e) => { 
+  .listen('.like.request', (e) => {
     console.log('BROADCAST NEW LIKE: ', e)
     postLikes.value = e.likes
   })
@@ -742,6 +837,44 @@ async function reportPost() {
   }
 }
 
+//--------------------------------------------------------
+
+// ----------- Xóa bài viết ------------
+async function removePost(postId) {
+  try {
+    let res = await axios.post(`post/removePost`, {
+      post_id: postId,
+    })
+    toast.success(res.data.message, {
+      position: 'bottom-right',
+    })
+  } catch (error) {
+    console.log('Xóa bài viết thất bại!', error)
+    toast.error(error.response.data.message, {
+      position: 'bottom-right',
+    })
+  }
+}
+//--------------------------------------------------------
+
+// ----------- Xóa bình luận ------------
+async function removeComment(commentId) {
+  try {
+    let res = await axios.post(`post/removeComment`, {
+      comment_id: commentId,
+    })
+    toast.success(res.data.message, {
+      position: 'bottom-right',
+    })
+
+    postComments.value = postComments.value.filter((comment) => comment.id != commentId)
+  } catch (error) {
+    console.log('Xóa bình luận thất bại!', error)
+    toast.error(error.response.data.message, {
+      position: 'bottom-right',
+    })
+  }
+}
 //--------------------------------------------------------
 </script>
 

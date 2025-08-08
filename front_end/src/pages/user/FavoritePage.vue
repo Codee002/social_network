@@ -144,11 +144,20 @@ watchEffect(() => {
         })
 
       //Share
-      //Share
       window.Echo.channel(`post.${post.id}`)
         .listen('.share.request', (e) => {
           console.log('BROADCAST NEW SHARE: ', e)
           shares.value[e.postId] = e.shares
+        })
+        .error((error) => {
+          console.error('Echo error:', error)
+        })
+
+      // Xóa bài viết
+      window.Echo.channel(`post.${post.id}`)
+        .listen('.post.remove', (e) => {
+          posts.value = posts.value.filter((post) => post.id != e.postId)
+          console.log('BROADCAST REMOVE POST: ', e.postId)
         })
         .error((error) => {
           console.error('Echo error:', error)
