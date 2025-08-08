@@ -7,6 +7,8 @@ use App\Events\NewNotificationEvent;
 use App\Events\NewPostRequest;
 use App\Events\NewShareRequest;
 use App\Events\NewViewRequest;
+use App\Events\RemoveCommentRequest;
+use App\Events\RemovePostRequest;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCommentRequest;
 use App\Http\Requests\StorePostRequest;
@@ -316,6 +318,62 @@ class PostController extends Controller
             return response()->json([
                 "success" => false,
                 'message' => "Có lỗi khi tố cáo bài viết",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+
+    }
+
+    //  Xóa bài viết
+    public function removePost(Request $request)
+    {
+        try {
+            $result = DB::transaction(function () use ($request) {
+                $post = Post::find($request['post_id']);
+                 $post->delete();
+                return $post;
+            });
+
+            broadcast(new RemovePostRequest($result->id))->toOthers();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Xóa bài viết thành công",
+                'result'  => $result,
+            ]);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi khi xóa bài viết",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+
+    }
+
+    //  Xóa bình luận
+    public function removeComment(Request $request)
+    {
+        try {
+            $result = DB::transaction(function () use ($request) {
+                $comment = Comment::find($request['comment_id']);
+                $comment->delete();
+                return $comment;
+            });
+
+            broadcast(new RemoveCommentRequest($result->post_id, $result))->toOthers();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Xóa bình luận thành công",
+                'result'  => $result,
+            ]);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi khi xóa bình luận",
                 "data"    => $th->getMessage(),
             ], 400);
         }
