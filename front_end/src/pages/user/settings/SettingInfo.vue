@@ -9,8 +9,10 @@
       >
         <i class="fa-solid fa-angle-right settingUserInfo__navWrapper__next"></i>
         <p class="settingUserInfo__navWrapper__nav__title">Thông tin liên lạc</p>
-        <p class="settingUserInfo__navWrapper__nav__info mb-0">{{ userProfile.email ?? 'Chưa có email' }}</p>
-        <i v-if="userProfile.email && !userProfile.email_active">(Chưa kích hoạt)</i>
+        <p class="settingUserInfo__navWrapper__nav__info mb-0">
+          {{ userProfile.email ?? 'Chưa có email' }}
+          <i class="" v-if="userProfile.email && userProfile.email_active == 0">(Chưa kích hoạt)</i>
+        </p>
         <p class="settingUserInfo__navWrapper__nav__info">{{ userProfile.profile.phone ?? 'Chưa có số điện thoại' }}</p>
       </div>
 
@@ -39,12 +41,15 @@
                       :class="{ 'is-invalid': errors.email }"
                     />
                     <span
-                      v-if="userProfile.email && !userProfile.email_active"
+                      v-if="userProfile.email && userProfile.email_active == 0"
                       id="check_active_email"
-                      class="text-danger"
+                      class="text-danger d-block"
+                      style="margin-top: -1rem; margin-bottom: 0.5rem"
                     >
                       Kích hoạt email
-                      <a href="#" class="text-danger"><strong>tại đây</strong></a>
+                      <router-link @click="activeEmail" :to="{ name: 'setting.emailActive' }" class="text-danger">
+                        <strong>tại đây</strong>
+                      </router-link>
                     </span>
                     <span v-if="errors.email" class="mb-3 invalid-feedback" style="display: block">
                       <strong>{{ errors.email }}</strong>
@@ -133,7 +138,13 @@
       >
         <i class="fa-solid fa-angle-right settingUserInfo__navWrapper__next"></i>
         <p class="settingUserInfo__navWrapper__nav__title">Ngày sinh</p>
-        <p class="settingUserInfo__navWrapper__nav__info">{{ userProfile.profile.birthday ? $dayjs(userProfile.profile.birthday).format('DD-MM-YYYY') : 'Chưa có năm sinh' }}</p>
+        <p class="settingUserInfo__navWrapper__nav__info">
+          {{
+            userProfile.profile.birthday
+              ? $dayjs(userProfile.profile.birthday).format('DD-MM-YYYY')
+              : 'Chưa có năm sinh'
+          }}
+        </p>
       </div>
 
       <!-- Modal -->
@@ -341,6 +352,7 @@ async function changeEmailAndPhone() {
       })
 
       userProfile.email = res.data.email
+      userProfile.email_active = res.data.email_active
       userProfile.profile.phone = res.data.phone
       window.bootstrap.Modal.getInstance(infoModal.value).hide()
     } catch (error) {
@@ -470,6 +482,11 @@ async function changeAddress() {
       }
     }
   }
+}
+
+// Route qua active email
+function activeEmail() {
+  window.bootstrap.Modal.getInstance(infoModal.value).hide()
 }
 </script>
 

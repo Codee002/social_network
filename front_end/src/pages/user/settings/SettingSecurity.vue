@@ -15,7 +15,7 @@
       </div>
 
       <!-- Modal -->
-      <div class="modal fade" id="Model1" aria-labelledby="exampleModalLabel" aria-hidden="true"  ref="passwordModal">
+      <div class="modal fade" id="Model1" aria-labelledby="exampleModalLabel" aria-hidden="true" ref="passwordModal">
         <div class="modal-dialog">
           <div class="modal-content settingUserInfo__navWrapper__modalBackground">
             <div class="modal-header">
@@ -24,7 +24,7 @@
               </strong>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="getPassword" @submit.prevent="changePassword" >
+            <form id="getPassword" @submit.prevent="changePassword">
               <div class="modal-body">
                 <div class="row">
                   <label for="oldpass" class="form-label">Mật khẩu cũ:</label>
@@ -98,18 +98,18 @@
       >
         <i class="fa-solid fa-angle-right settingUserInfo__navWrapper__next"></i>
         <p class="settingUserInfo__navWrapper__nav__title settingSecurity_navWrapper__nav__title">
-          Xác thực 2 bước (chưa kích hoạt)
+          Xác thực 2 bước
+          <i v-if="userProfile.two_step_auth == 0">(Chưa kích hoạt)</i>
+          <i v-if="userProfile.two_step_auth == 1">(Đang kích hoạt)</i>
         </p>
       </div>
 
       <!-- Modal -->
-      <div class="modal fade" id="Modal2" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal fade" id="Modal2" aria-labelledby="exampleModalLabel" aria-hidden="true" ref="twoStepAuthModal">
         <div class="modal-dialog">
           <div class="modal-content settingUserInfo__navWrapper__modalBackground">
-            <div class="modal-header">
-              <strong>
-                <h1 class="modal-title text-center fs-5 ms-auto">Xác thực 2 bước</h1>
-              </strong>
+            <div class="modal-header" style="position: relative">
+              <h1 class="modal-title text-center fs-5 ms-auto">Xác thực 2 bước</h1>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
@@ -119,8 +119,10 @@
             <div class="modal-footer d-flex justify-content-between settingUserInfo__navWrapper__modalBackground">
               <button type="button" data-bs-dismiss="modal" class="btn btn-danger">Hủy bỏ</button>
               <div>
-                <a href="/setting/authTwoStep/off"><button type="button" class="btn btn-secondary">Tắt</button></a>
-                <a href="/setting/authTwoStep/on"><button type="submit" class="btn btn-primary ms-2">Bật</button></a>
+                <a href="#" @click="twoStepAuth(0)"><button type="button" class="btn btn-secondary">Tắt</button></a>
+                <a href="#" @click="twoStepAuth(1)">
+                  <button type="submit" class="btn btn-primary ms-2">Bật</button>
+                </a>
               </div>
             </div>
           </div>
@@ -150,11 +152,11 @@ const form = reactive({
 })
 
 const passwordModal = ref()
+const twoStepAuthModal = ref()
 const errors = reactive({})
 const toast = useToast()
 
 async function changePassword() {
-
   errors.oldpass = null
   errors.password = validate.password(form.password)
   errors.password_confirmation = validate.passwordConfirm(form.password, form.password_confirmation)
@@ -190,6 +192,25 @@ function changeTypePassword(event) {
   } else {
     input.type = 'password'
     event.target.classList.replace('fa-eye-slash', 'fa-eye')
+  }
+}
+
+// Bảo mật 2 lớp
+async function twoStepAuth(type) {
+  try {
+    const res = await axios.post(`/twoStepAuth`, {
+      type: type,
+    })
+    toast.success(res.data.message, {
+      position: 'bottom-right',
+    })
+    userProfile.two_step_auth = res.data.two_step_auth
+    window.bootstrap.Modal.getInstance(twoStepAuthModal.value).hide()
+  } catch (error) {
+    console.log('Có lỗi khi đổi trạng thái xác thực', error)
+    toast.error(error.response.data.message, {
+      position: 'bottom-right',
+    })
   }
 }
 </script>

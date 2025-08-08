@@ -12,7 +12,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const publicRoutes = ['/auth/login', '/auth/register', '/auth/forgot']
+  const publicRoutes = ['/auth/login', '/auth/register', '/auth/forgot', '/auth/reset', '/auth/sendby']
   const isLogin = auth.isLogin()
 
   // Xét đăng nhập
@@ -32,7 +32,7 @@ router.beforeEach((to, from, next) => {
 
   // Nếu tài khoản bị khóa
   if (isLogin && userStatus == 'disabled' && to.path !== '/account/ban') {
-    console.log("Bị khóa tài khoản")
+    console.log('Bị khóa tài khoản')
     next('/account/ban')
   }
 
