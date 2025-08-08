@@ -70,7 +70,12 @@
       </div>
     </div> -->
 
-      <button type="submit" class="btn btn-primary mg-btn">Đăng nhập</button>
+      <!-- Loading  -->
+      <div class="d-flex justify-content-center flex-column align-items-center" v-if="loading" style="margin: auto">
+        <div class="spinner-border"></div>
+        <p class="mt-2">Đang xác thực</p>
+      </div>
+      <button v-else type="submit" class="btn btn-primary mg-btn">Đăng nhập</button>
 
       <hr />
       <p class="text-center">
@@ -100,7 +105,7 @@
 // ----------------------- Import -----------------------
 import router from '@/router'
 import axios from 'axios'
-import { reactive, defineEmits } from 'vue'
+import { reactive, defineEmits, ref } from 'vue'
 import { useToast } from 'vue-toastification'
 import ToastAlert from '../../components/ToastAlert.vue'
 import { h } from 'vue'
@@ -114,7 +119,10 @@ const form = reactive({
   capcha: '',
 })
 const emit = defineEmits(['changeTypePassword'])
+const loading = ref(false)
 // const srcImg = ref(require("@/assets/images/general/login.png"))
+sessionStorage.removeItem('userChangePassword')
+sessionStorage.removeItem('userForgot')
 
 // ----------------------- Function -----------------------
 async function onSubmit() {
@@ -127,15 +135,30 @@ async function onSubmit() {
 
   const hasErrors = Object.values(errors).some((error) => error && error != '')
   if (hasErrors != true) {
+    loading.value = true
     try {
       const res = await axios.post(`/auth/login`, form)
-      localStorage.setItem('auth_token', res.data.auth_token)
-      localStorage.setItem('owner', JSON.stringify(res.data.user))
-      axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('auth_token')}`
-      if (res.data.user.role == 'user') router.push({ name: 'home' })
-      else if (res.data.user.role == 'admin') router.push({name: "admin.account"})
+
+      // Xem có bảo mật 2 lớp không
+      if (res.data.two_step_auth == 0) {
+        loading.value = false
+        localStorage.setItem('auth_token', res.data.auth_token)
+        localStorage.setItem('owner', JSON.stringify(res.data.user))
+        axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('auth_token')}`
+        if (res.data.user.role == 'user') router.push({ name: 'home' })
+        else if (res.data.user.role == 'admin') router.push({ name: 'admin.account' })
+      }
+
+      // Nếu bảo mật 2 lớp
+      else if (res.data.two_step_auth == 1) {
+        loading.value = false
+        toast.info(res.data.message, {
+          position: 'top-center',
+        })
+      }
     } catch (error) {
       if (error.response) {
+        loading.value = false
         const resData = error.response.data
         toast.error(
           h(ToastAlert, {

@@ -158,6 +158,8 @@ const form = reactive({
 })
 const message = reactive({})
 const emit = defineEmits(['changeTypePassword'])
+sessionStorage.removeItem('userChangePassword')
+sessionStorage.removeItem('userForgot')
 
 // ----------------------- Function -----------------------
 async function onSubmit() {

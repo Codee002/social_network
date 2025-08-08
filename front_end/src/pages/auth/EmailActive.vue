@@ -1,33 +1,36 @@
 <template>
-  <router-link :to="{ name: 'auth.login' }">
-    <i class="fa-solid fa-arrow-left back"></i>
-  </router-link>
+  <div v-if="user">
+    <router-link :to="{ name: 'setting.info' }">
+      <i class="fa-solid fa-arrow-left back"></i>
+    </router-link>
 
-  <p class="text-center fs-3 fw-semibold fw-bolder">Quên mật khẩu?</p>
+    <p class="text-center fs-3 fw-semibold fw-bolder">Xác thực email</p>
 
-  <p class="text-center">Nhập vào tên đăng nhập của bạn để lấy lại mật khẩu</p>
-
-  <!-- Username -->
-  <form @submit.prevent="onSubmit()">
-    <div class="form-group mg-form">
-      <div class="form-floating mb-3 mt-3">
-        <input
-          type="text"
-          class="form-control"
-          placeholder="Enter username"
-          autocomplete="off"
-          v-model="form.username"
-          :class="{ 'is-invalid': errors.username }"
-        />
-        <label class="label-input" for="username">Tên đăng nhập</label>
-        <span v-if="errors.username" class="invalid-feedback" style="display: block">
-          <strong>{{ errors.username }}</strong>
-        </span>
-      </div>
+    <!-- Loading  -->
+    <div class="d-flex justify-content-center flex-column align-items-center" v-if="loading" style="margin: auto">
+      <div class="spinner-border"></div>
+      <p class="mt-2">Đang gửi gmail</p>
     </div>
 
-    <!-- Capcha -->
-    <!-- <div class="form-group mg-form mb-3" style="align-items: center">
+    <form v-else @submit.prevent="onSubmit()">
+      
+      <!-- Username -->
+      <div class="form-group mg-form">
+        <div class="form-floating mb-3 mt-3">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Enter username"
+            autocomplete="off"
+            disabled
+            :value="user.email"
+          />
+          <label class="label-input" for="username">Email</label>
+        </div>
+      </div>
+
+      <!-- Capcha -->
+      <!-- <div class="form-group mg-form mb-3" style="align-items: center">
       <div class="form-floating mt-3 mb-0 d-flex justify-content-start" style="align-items: center" id="capcha-group">
         <input type="text" class="form-control" placeholder="" name="captcha" />
         <label class="label-input" for="">Capcha</label>
@@ -43,48 +46,46 @@
       </div>
     </div> -->
 
-    <button type="button" @click="onSubmit()" class="btn btn-primary mg-btn">Tìm tài khoản</button>
-  </form>
-  <hr />
-  <p class="text-center">
-    Chưa có tài khoản?
-    <a class="text-decoration-none" href="http://vibez.localhost/register">Đăng ký</a>
-  </p>
+      <button type="button" @click="onSubmit()" class="btn btn-primary mg-btn">Gửi mã xác thực</button>
+    </form>
+  </div>
 </template>
 
 <script setup>
-import router from '@/router'
 import axios from 'axios'
-import { reactive } from 'vue'
+import { onMounted, ref } from 'vue'
+import { useToast } from 'vue-toastification'
 
-const form = reactive({
-  username: '',
+const toast = useToast()
+const loading = ref(false)
+const user = ref()
+
+onMounted(() => {
+  user.value = JSON.parse(localStorage.getItem('owner'))
 })
 
-const errors = reactive({})
-sessionStorage.removeItem('userChangePassword')
-sessionStorage.removeItem('userForgot')
-
 async function onSubmit() {
-  // Validate
-  if (!form.username || form.username.trim().length == 0) errors.username = 'Tên đăng nhập không được để trống'
-  else errors.username = ''
-  console.log(form.username)
-
-  const hasErrors = Object.values(errors).some((error) => error && error != '')
-  if (hasErrors != true) {
-    try {
-      const res = await axios.post(`/auth/forgot`, form)
-      if (res.data.success == false) {
-        errors.username = res.data.message
-      } else if (res.data.success == true) {
-        sessionStorage.setItem('userForgot', res.data.user.id)
-        router.push({ name: 'auth.sendby' })
-      }
-      console.log(res.data)
-    } catch (error) {
-      console.log('Có lỗi khi tìm tài khoản', error)
-    }
+  loading.value = true
+  try {
+    const res = await axios.post(`/auth/getTokenActive`, {
+      user_id: user.value.id,
+    })
+    loading.value = false
+    toast.success(res.data.message, {
+      position: 'top-center',
+    })
+    loading.value = false
+  } catch (error) {
+    toast.error(error.response.data.message, {
+      position: 'top-center',
+    })
+    loading.value = false
   }
 }
 </script>
+
+<style scoped>
+.modal-backdrop.show{
+  opacity: 0 !important;
+}
+</style>
