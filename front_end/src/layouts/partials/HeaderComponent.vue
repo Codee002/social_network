@@ -2,8 +2,9 @@
   <header>
     <div class="d-flex align-items-center" style="height: 100%; width: 100em; margin-right: 4rem">
       <img class="logo" :src="srcLogoImage" />
-      <form action="" class="d-flex align-items-center" style="height: 100%">
-        <search-component class="search" :name="field" :placeholder="placeholder"></search-component>
+      <form @submit.prevent="search()" class="d-flex align-items-center" style="height: 100%">
+        <!-- <search-component class="search" :name="field" :placeholder="placeholder"></search-component> -->
+        <input type="text " placeholder="Tìm kiếm" v-model="inputSerach" class="form-control inputSeach" />
       </form>
     </div>
 
@@ -26,7 +27,7 @@
         <icon-nav :isActive="{ 'is-active': $route.matched.some((r) => r.name === 'conversation') }">
           <i class="fa-solid fa-message"></i>
         </icon-nav>
-        <span class="notification-dot" style="top: 0.9rem; right: 2rem"></span>
+        <!-- <span class="notification-dot" style="top: 0.9rem; right: 2rem"></span> -->
       </router-link>
     </div>
 
@@ -148,7 +149,7 @@
 <script setup>
 // ----------------------- Import -----------------------
 import { ref, defineProps } from 'vue'
-import SearchComponent from './SearchComponent.vue'
+// import SearchComponent from './SearchComponent.vue'
 import IconNav from './IconNav.vue'
 import axios from 'axios'
 import NavComponent from './NavComponent.vue'
@@ -156,8 +157,6 @@ import router from '@/router'
 // import auth from '@/utils/auth.js'
 
 // ----------------------- Var -----------------------
-const field = ref('search')
-const placeholder = ref('Tìm kiếm')
 const srcLogoImage = ref(require('@/assets/images/general/logo.png'))
 const isSettingOpen = ref(false)
 const isNotificationOpen = ref(false)
@@ -216,6 +215,12 @@ async function logout() {
   } catch (error) {
     console.log('Có lỗi khi đăng xuất! ', error)
   }
+}
+
+// Tìm kiếm
+const inputSerach = ref()
+function search() {
+  router.push({ name: 'search', params: { input: inputSerach.value } })
 }
 </script>
 
@@ -321,5 +326,14 @@ header .avatar {
   color: red;
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+.inputSeach {
+  border: unset !important;
+  height: 70%;
+  border-radius: 2rem !important;
+  padding: 1rem;
+  width: 17rem;
+  background-color: var(--extra-bg) !important;
 }
 </style>

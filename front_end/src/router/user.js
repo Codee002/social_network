@@ -12,6 +12,7 @@ import SettingPage from '@/pages/user/SettingPage'
 import SettingInfo from '@/pages/user/settings/SettingInfo'
 import SettingSecurity from '@/pages/user/settings/SettingSecurity'
 import SettingTheme from '@/pages/user/settings/SettingTheme'
+import ProfileSearch from '@/pages/user/search/ProfileSearch'
 import AccountBan from '@/pages/user/account_ban/AccountBan'
 
 const userRoutes = [
@@ -157,6 +158,17 @@ const userRoutes = [
         name: 'account.ban',
         meta: {
           title: 'Tài khoản bị khóa',
+          requiresAuth: true,
+        },
+      },
+
+      // Trang tìm kiếm
+      {
+        path: 'search/:input',
+        component: ProfileSearch,
+        name: 'search',
+        meta: {
+          title: 'Tìm kiếm',
           requiresAuth: true,
         },
       },
