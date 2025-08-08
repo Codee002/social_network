@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User;
 use App\Events\CallAcceptRequest;
 use App\Events\NewCallRequest;
 use App\Events\ReceiveMessageRequest;
+use App\Events\RemoveMessageRequest;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreConversationRequest;
 use App\Http\Requests\StoreMessageRequest;
@@ -67,7 +68,7 @@ class ConversationController extends Controller
 
             foreach ($conversations as $conversation) {
                 $conversation['user']    = $conversation->users()->where("user_id", '!=', $owner->id)->first()->profile;
-                $conversation['message'] = $conversation->messages()->orderBy("id", 'desc')->first();
+                $conversation['message'] = $conversation->messages()->withTrashed()->orderBy("id", 'desc')->first();
             }
             return response()->json([
                 'success'       => true,
@@ -89,7 +90,11 @@ class ConversationController extends Controller
         try {
             $conversation             = Conversation::find($conversationId);
             $conversation['users']    = $conversation->users()->with('profile')->get();
-            $conversation['messages'] = $conversation->messages()->with('medias')->orderBy("created_at", 'desc')->get();
+            $conversation['messages'] = $conversation->messages()
+                ->withTrashed()
+                ->with('medias')
+                ->orderBy("created_at", 'desc')
+                ->get();
 
             foreach ($conversation['messages'] as $message) {
                 $message['userName'] = $message->user->profile->name;
@@ -155,6 +160,42 @@ class ConversationController extends Controller
                 "data"    => $th->getMessage(),
             ], 400);
         }
+    }
+
+    // Thu hồi tin nhắn
+    public function removeMessage(Request $request)
+    {
+        $owner = $request->user();
+        try {
+            $result = DB::transaction(function () use ($request) {
+                $message = Message::find($request['message_id']);
+                $message->delete();
+                return $message;
+            });
+
+            $usersIdArray = $result->conversation->users()->pluck('user_id')->all();
+            broadcast(new RemoveMessageRequest($result, $owner->id));
+
+            foreach ($usersIdArray as $userId) {
+                if ($userId != $owner->id) {
+                    broadcast(new RemoveMessageRequest($result, $userId));
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Thu hồi tin nhắn thành công",
+                'result'  => $result,
+            ]);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                "success" => false,
+                'message' => "Có lỗi khi xóa tin nhắn",
+                "data"    => $th->getMessage(),
+            ], 400);
+        }
+
     }
 
     public function createConversation(StoreConversationRequest $request)
