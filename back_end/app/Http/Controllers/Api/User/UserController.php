@@ -242,10 +242,11 @@ class UserController extends Controller
                 ]);
             }
             return response()->json([
-                'success' => true,
-                'message' => 'Cập nhật email số điện thoại thành công',
-                'email'   => $request['email'],
-                'phone'   => $request['phone'],
+                'success'      => true,
+                'message'      => 'Cập nhật email số điện thoại thành công',
+                'email'        => $request['email'],
+                'email_active' => $user->email_active,
+                'phone'        => $request['phone'],
             ], 200);
         } catch (\Throwable $th) {
             return response()->json([
@@ -417,6 +418,40 @@ class UserController extends Controller
         ], 200);
     }
 
+    // Lấy bài viết chia sẻ
+    public function getSharePosts(Request $request, $userId)
+    {
+        $user = User::find($userId);
+        // $user = $request->user();
+
+        $posts = [];
+        foreach ($user->shares as $share) {
+            // dd($share);
+            $posts[] = $share->post()->with("medias")->orderBy("created_at", 'desc')
+                ->with('user.profile')->first();
+        }
+
+        $views  = [];
+        $likes  = [];
+        $shares = [];
+        foreach ($posts as $post) {
+            $likes[$post->id]    = $post->likes()->pluck("user_id")->all();
+            $views[$post->id]    = $post->watches()->pluck("user_id")->all();
+            $comments[$post->id] = $post->comments()->pluck("user_id")->all();
+            $shares[$post->id]   = $post->shares()->pluck("user_id")->all();
+        }
+
+        return response()->json([
+            "success"  => true,
+            "message"  => 'Lấy bài viết thành công',
+            "posts"    => $posts,
+            "views"    => $views,
+            "likes"    => $likes,
+            "comments" => $comments,
+            "shares"   => $shares,
+        ], 200);
+    }
+
     public function changeBio(Request $request)
     {
         $user = $request->user()->load("profile");
@@ -439,6 +474,31 @@ class UserController extends Controller
                 "data"    => $th->getMessage(),
             ], 400);
         }
+    }
+
+    // Chuyển đổi trạng thái xác thực 2 lớp
+    public function twoStepAuth(Request $request)
+    {
+        $user = $request->user();
+        if ($user['email_active'] == 0) {
+            return response()->json([
+                "success" => false,
+                'message' => "Vui lòng kích hoạt email để dùng tính năng này",
+            ], 400);
+        }
+
+        $type = $request['type'];
+        /**
+         * @var User $user
+         */
+        $user->update([
+            'two_step_auth' => $type,
+        ]);
+        return response()->json([
+            'success'       => true,
+            'message'       => 'Đổi trạng thái thành công',
+            'two_step_auth' => $type,
+        ], 200);
     }
 
     // Tố cáo tài khoản
@@ -476,6 +536,18 @@ class UserController extends Controller
                 "data"    => $th->getMessage(),
             ], 400);
         }
+
+    }
+
+    // Tìm kiếm
+    public function searchProfile(Request $request)
+    {
+        $users = User::with('profile')->get();
+        return response()->json([
+            "success" => false,
+            'message' => "Lấy danh sách người dùng thành công",
+            "users"   => $users,
+        ], 200);
 
     }
 
