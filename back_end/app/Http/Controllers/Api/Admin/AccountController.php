@@ -12,7 +12,7 @@ class AccountController extends Controller
     public function getAccounts(Request $request)
     {
         $perPage  = $request->get('perPage', 10);
-        $accounts = User::with('profile')->paginate($perPage);
+        $accounts = User::with('profile')->where('id', "!=", $request->user()->id)->paginate($perPage);
 
         return response()->json([
             'success'    => true,
