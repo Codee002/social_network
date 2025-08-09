@@ -5,7 +5,7 @@
     <router-view
       :owner="owner"
       :listFriend="listFriend"
-      :key="$route.name === 'profile' ? $route.fullPath : undefined"
+      :key="$route.name === 'profile' || $route.name =='post' ? $route.fullPath : undefined"
     ></router-view>
   </div>
   <div class="spinner-border" v-else style="margin: auto"></div>

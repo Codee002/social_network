@@ -1,7 +1,9 @@
 <template>
   <header>
     <div class="d-flex align-items-center" style="height: 100%; width: 100em; margin-right: 4rem">
-      <img class="logo" :src="srcLogoImage" />
+      <router-link style="display: contents" :to="{ name: 'home' }">
+        <img class="logo" :src="srcLogoImage" />
+      </router-link>
       <form @submit.prevent="search()" class="d-flex align-items-center" style="height: 100%">
         <!-- <search-component class="search" :name="field" :placeholder="placeholder"></search-component> -->
         <input type="text " placeholder="Tìm kiếm" v-model="inputSerach" class="form-control inputSeach" />
@@ -42,7 +44,7 @@
       <ul class="dropdown-menu dropdown__notification show" v-if="isNotificationOpen && user">
         <div class="d-flex justify-content-between">
           <h5 style="font-weight: 700">Thông báo</h5>
-          <router-link class="notification__all">Xem tất cả</router-link>
+          <!-- <router-link class="notification__all">Xem tất cả</router-link> -->
         </div>
         <div>
           <hr />
@@ -133,7 +135,7 @@
             <template v-slot:des>Cài đặt & quyền riêng tư</template>
           </nav-component>
         </router-link>
-        <a class="d-flex" @click="logout()">
+        <a class="d-flex" href="#" @click="logout()">
           <nav-component>
             <template v-slot:icon>
               <i class="fa-solid fa-right-from-bracket"></i>
@@ -220,7 +222,9 @@ async function logout() {
 // Tìm kiếm
 const inputSerach = ref()
 function search() {
-  router.push({ name: 'search', params: { input: inputSerach.value } })
+  if (inputSerach.value != '') {
+    router.push({ name: 'search', params: { input: inputSerach.value } })
+  }
 }
 </script>
 
