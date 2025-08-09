@@ -310,8 +310,10 @@ const onSubmit = async () => {
 
 .media-preview img,
 .media-preview video {
-  width: 100%;
-  border-radius: 0.5rem;
+  width: 100% !important;
+  border-radius: 0.5rem !important;
+  height: 100% !important;
+  margin: 0 !important;
 }
 
 #modal__upload--post .post__privacy i {

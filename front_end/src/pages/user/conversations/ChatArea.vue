@@ -542,6 +542,8 @@ async function removeMessage(messageId) {
   padding: 0.1rem;
   align-items: end;
   position: relative;
+
+  padding-right: 3rem;
 }
 
 .chat-content .chat-time {
@@ -606,9 +608,9 @@ async function removeMessage(messageId) {
   display: block;
 }
 
-.is-owner:hover .chat-message__container {
+/* .is-owner:hover .chat-message__container {
   right: 3rem;
-}
+} */
 
 .chat-message p {
   display: contents;

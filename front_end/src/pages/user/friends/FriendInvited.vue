@@ -31,13 +31,13 @@
 
               <div class="friendInvite__main__info__option">
                 <button
-                  @click="changeRelation(relation.id, 'friend', 'completed')"
+                  @click.stop.prevent="changeRelation(relation.id, 'friend', 'completed')"
                   class="btn mb-2 friendInvite__main__info__option--accept"
                 >
                   Chấp nhận
                 </button>
                 <button
-                  @click="changeRelation(relation.id, 'friend', 'reject')"
+                  @click.stop.prevent="changeRelation(relation.id, 'friend', 'reject')"
                   class="btn btn-secondary friendInvite__main__info__option--ignore"
                 >
                   Từ chối
