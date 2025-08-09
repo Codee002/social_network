@@ -79,7 +79,7 @@ class PostController extends Controller
 
     }
 
-    public function getPostDetail($postId)
+    public function getPostDetail(Request $request, $postId)
     {
         $post = Post::find($postId)
             ->load("medias")
@@ -97,10 +97,15 @@ class PostController extends Controller
             $comment['medias']      = $comment->medias;
         }
 
+        // Lấy thêm quan hệ và danh sách bạn bè
+        $post['relation'] = Relation::getRelationStatus($request->user()->id, $post->user_id);
+        $listFriends      = Relation::getFriends($request->user()->id);
+
         return response()->json([
-            "success" => true,
-            "message" => 'Lấy bài viết thành công',
-            "post"    => $post,
+            "success"     => true,
+            "message"     => 'Lấy bài viết thành công',
+            "post"        => $post,
+            "listFriends" => $listFriends,
         ], 200);
     }
 
@@ -330,7 +335,7 @@ class PostController extends Controller
         try {
             $result = DB::transaction(function () use ($request) {
                 $post = Post::find($request['post_id']);
-                 $post->delete();
+                $post->delete();
                 return $post;
             });
 
@@ -387,14 +392,28 @@ class PostController extends Controller
         $listFriendIds = Relation::getFriendsId($user['id']);
         $perPage       = $request->get('perPage', 10);
         $posts         = Post::with(['medias', 'user.profile'])
-        // Lấy các bài public
-            ->where("rule", "public")
-            ->where("status", 'actived')
-            ->orWhere("user_id", $user['id'])
-            ->orWhere(function ($q) use ($listFriendIds) {
+        //     ->where("status", 'actived')
+        // // Lấy các bài public
+        //     ->where("rule", "public")
+        //     ->orWhere("user_id", $user['id'])
+        //     ->orWhere(function ($q) use ($listFriendIds) {
 
-                // Lấy các bài của bạn bè
-                $q->where('rule', 'friend')->whereIn('user_id', $listFriendIds);
+        //         // Lấy các bài của bạn bè
+        //         $q->where('rule', 'friend')->whereIn('user_id', $listFriendIds);
+        //     })
+
+            ->where('posts.status', 'actived')
+            ->whereHas('user', function ($query) {
+                $query->where('status', 'actived');
+            })
+        // Điều kiện hiển thị
+            ->where(function ($q) use ($user, $listFriendIds) {
+                $q->where('rule', 'public')       // bài công khai
+                    ->orWhere('user_id', $user['id']) // bài của chính mình
+                    ->orWhere(function ($sub) use ($listFriendIds) {
+                        $sub->where('rule', 'friend')
+                            ->whereIn('user_id', $listFriendIds); // bài bạn bè
+                    });
             })
 
         // Tính tổng điểm
@@ -412,21 +431,30 @@ class PostController extends Controller
         $views  = [];
         $likes  = [];
         $shares = [];
+
+        // Lấy DS bạn bè và quan hệ
+        $relations   = [];
+        $listFriends = Relation::getFriends($request->user()->id);
         foreach ($posts as $post) {
             $likes[$post->id]    = $post->likes()->pluck("user_id")->all();
             $views[$post->id]    = $post->watches()->pluck("user_id")->all();
             $comments[$post->id] = $post->comments()->pluck("user_id")->all();
             $shares[$post->id]   = $post->shares()->pluck("user_id")->all();
+
+            // Lấy relationShip
+            $relations[$post->id] = Relation::getRelationStatus($request->user()->id, $post->user_id);
         }
 
         return response()->json([
-            "success"  => true,
-            'message'  => "Lấy bài viết cho trang chủ thành công",
-            "posts"    => $posts,
-            "views"    => $views,
-            "likes"    => $likes,
-            "comments" => $comments,
-            "shares"   => $shares,
+            "success"     => true,
+            'message'     => "Lấy bài viết cho trang chủ thành công",
+            "posts"       => $posts,
+            "views"       => $views,
+            "likes"       => $likes,
+            "comments"    => $comments,
+            "shares"      => $shares,
+            "relations"   => $relations,
+            "listFriends" => $listFriends,
         ], 200);
     }
 }

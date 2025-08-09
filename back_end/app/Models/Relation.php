@@ -41,6 +41,29 @@ class Relation extends Model
         return $relation;
     }
 
+    public static function getRelationStatus($ownerId, $userId)
+    {
+        if ($ownerId == $userId) {
+            return "owner";
+        }
+
+        $relation = Relation::getRelationShip($ownerId, $userId);
+        if (! $relation || $relation['status'] == "reject") {
+            return "stranger";
+        }
+
+        if ($relation['type'] == "friend") {
+            if ($relation['status'] == 'completed') {
+                return 'friend';
+            } else {
+                return 'friend_pending';
+            }
+        }
+
+        return "stranger";
+
+    }
+
     public static function getFriends($userId)
     {
         $send = User::find($userId)->sendRelations()
@@ -63,12 +86,11 @@ class Relation extends Model
         return $friendList;
     }
 
-     public static function getFriendsId($userId)
+    public static function getFriendsId($userId)
     {
-        $friendList = Relation::getFriends($userId);
+        $friendList    = Relation::getFriends($userId);
         $friendListIds = [];
-        foreach ($friendList as $relation)
-        {
+        foreach ($friendList as $relation) {
             $friendListIds[] = $relation->user->id;
         }
         return $friendListIds;

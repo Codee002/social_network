@@ -84,24 +84,35 @@ class UserController extends Controller
             ->with("medias")->orderBy("created_at", 'desc')
             ->with('user.profile')->get();
 
-        $views  = [];
-        $likes  = [];
-        $shares = [];
+        $views    = [];
+        $likes    = [];
+        $shares   = [];
+        $comments = [];
+
+        // Lấy thêm quan hệ và danh sách bạn bè
+        $relations   = [];
+        $listFriends = Relation::getFriends($request->user()->id);
+
         foreach ($posts as $post) {
             $likes[$post->id]    = $post->likes()->pluck("user_id")->all();
             $views[$post->id]    = $post->watches()->pluck("user_id")->all();
             $comments[$post->id] = $post->comments()->pluck("user_id")->all();
             $shares[$post->id]   = $post->shares()->pluck("user_id")->all();
+
+            // Lấy relationShip
+            $relations[$post->id] = Relation::getRelationStatus($request->user()->id, $post->user_id);
         }
 
         return response()->json([
-            "success"  => true,
-            "message"  => 'Lấy bài viết thành công',
-            "posts"    => $posts,
-            "views"    => $views,
-            "likes"    => $likes,
-            "comments" => $comments,
-            "shares"   => $shares,
+            "success"     => true,
+            "message"     => 'Lấy bài viết thành công',
+            "posts"       => $posts,
+            "views"       => $views,
+            "likes"       => $likes,
+            "comments"    => $comments,
+            "shares"      => $shares,
+            "relations"   => $relations,
+            "listFriends" => $listFriends,
         ], 200);
     }
 
@@ -393,28 +404,41 @@ class UserController extends Controller
         $user  = $request->user();
         $posts = [];
         foreach ($user->likes as $like) {
-            $posts[] = $like->post()->with("medias")->orderBy("created_at", 'desc')
+            $posts[] = $like->post()
+                ->withTrashed()
+                ->with("medias")
+                ->orderBy("created_at", 'desc')
                 ->with('user.profile')->first();
         }
 
         $views  = [];
         $likes  = [];
         $shares = [];
+
+        // Lấy thêm quan hệ và danh sách bạn bè
+        $relations   = [];
+        $listFriends = Relation::getFriends($request->user()->id);
+
         foreach ($posts as $post) {
             $likes[$post->id]    = $post->likes()->pluck("user_id")->all();
             $views[$post->id]    = $post->watches()->pluck("user_id")->all();
             $comments[$post->id] = $post->comments()->pluck("user_id")->all();
             $shares[$post->id]   = $post->shares()->pluck("user_id")->all();
+
+            // Lấy relationShip
+            $relations[$post->id] = Relation::getRelationStatus($request->user()->id, $post->user_id);
         }
 
         return response()->json([
-            "success"  => true,
-            "message"  => 'Lấy bài viết thành công',
-            "posts"    => $posts,
-            "views"    => $views,
-            "likes"    => $likes,
-            "comments" => $comments,
-            "shares"   => $shares,
+            "success"     => true,
+            "message"     => 'Lấy bài viết thành công',
+            "posts"       => $posts,
+            "views"       => $views,
+            "likes"       => $likes,
+            "comments"    => $comments,
+            "shares"      => $shares,
+            "relations"   => $relations,
+            "listFriends" => $listFriends,
         ], 200);
     }
 
@@ -427,28 +451,38 @@ class UserController extends Controller
         $posts = [];
         foreach ($user->shares as $share) {
             // dd($share);
-            $posts[] = $share->post()->with("medias")->orderBy("created_at", 'desc')
+            $posts[] = $share->post()->withTrashed()->with("medias")->orderBy("created_at", 'desc')
                 ->with('user.profile')->first();
         }
 
         $views  = [];
         $likes  = [];
         $shares = [];
+
+        // Lấy thêm quan hệ và danh sách bạn bè
+        $relations   = [];
+        $listFriends = Relation::getFriends($request->user()->id);
+
         foreach ($posts as $post) {
             $likes[$post->id]    = $post->likes()->pluck("user_id")->all();
             $views[$post->id]    = $post->watches()->pluck("user_id")->all();
             $comments[$post->id] = $post->comments()->pluck("user_id")->all();
             $shares[$post->id]   = $post->shares()->pluck("user_id")->all();
+
+            // Lấy relationShip
+            $relations[$post->id] = Relation::getRelationStatus($request->user()->id, $post->user_id);
         }
 
         return response()->json([
-            "success"  => true,
-            "message"  => 'Lấy bài viết thành công',
-            "posts"    => $posts,
-            "views"    => $views,
-            "likes"    => $likes,
-            "comments" => $comments,
-            "shares"   => $shares,
+            "success"     => true,
+            "message"     => 'Lấy bài viết thành công',
+            "posts"       => $posts,
+            "views"       => $views,
+            "likes"       => $likes,
+            "comments"    => $comments,
+            "shares"      => $shares,
+            "relations"   => $relations,
+            "listFriends" => $listFriends,
         ], 200);
     }
 
@@ -542,7 +576,7 @@ class UserController extends Controller
     // Tìm kiếm
     public function searchProfile(Request $request)
     {
-        $users = User::with('profile')->get();
+        $users = User::with('profile')->where("id", "!=", $request->user()->id)->where("status", 'actived')->get();
         return response()->json([
             "success" => false,
             'message' => "Lấy danh sách người dùng thành công",
