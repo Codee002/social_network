@@ -15,7 +15,7 @@
           :shares="shares[post.id]"
           :renderAll="false"
           :owner="owner"
-          :relationStatus="relationStatus"
+          :relationStatus="relations[post.id]"
           :ref="(el) => (postRefs[post.id] = el)"
           :listFriend="listFriend"
         ></post-component>
@@ -57,6 +57,10 @@ const loading = ref(false)
 const hasMore = ref(true)
 const loadMorePost = ref()
 
+// Thêm relation và list friend
+const listFriend = ref([])
+const relations = ref([])
+
 onMounted(async () => {
   if (loadMorePost.value) {
     loadMoreObserver.observe(loadMorePost.value)
@@ -91,6 +95,11 @@ async function getPosts() {
     likes.value = { ...likes.value, ...res.data.likes }
     comments.value = { ...comments.value, ...res.data.comments }
     shares.value = { ...shares.value, ...res.data.shares }
+
+    // Them relation
+    relations.value = { ...relations.value, ...res.data.relations }
+    listFriend.value = res.data.listFriends
+
     currentPage.value += 1
     loading.value = false
 

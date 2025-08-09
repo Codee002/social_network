@@ -1,5 +1,5 @@
 <template>
-  <div v-if="user && !loading" :key="$route.fullPath">
+  <div v-if="user && !loading && user.status == 'actived'" :key="$route.fullPath">
     <div class="profile__header">
       <div class="profile__inner profile__inner--header">
         <profile-cover :srcThumb="srcThumb" :relationStatus="relationStatus" :user="user"></profile-cover>
@@ -37,6 +37,14 @@
     ></interview-component>
     <profile-share :user="user" :owner="owner" v-if="mode == 'share'"></profile-share>
     <div style="min-height: 200vh" class="content"></div>
+  </div>
+  <div v-else-if="user && user.status == 'disabled'">
+    <div class="post__media">
+      <div class="p-4 d-flex flex-column align-items-center justify-content-center">
+        <i class="fa-solid fa-ban text-danger" style="font-size: 20rem"></i>
+        <h6 class="text-center mt-3">Trang cá nhân có thể không tồn tại hoặc đã bị khóa</h6>
+      </div>
+    </div>
   </div>
 
   <div class="spinner-border" v-else style="margin: auto"></div>

@@ -11,7 +11,8 @@
       :shares="shares[post.id]"
       :renderAll="false"
       :owner="owner"
-      :relationStatus="relationStatus"
+      :relationStatus="relations[post.id]"
+      :listFriend="listFriend"
       :acceptView="true"
       :ref="(el) => (postRefs[post.id] = el)"
     ></post-component>
@@ -32,6 +33,8 @@ const views = ref([])
 const likes = ref([])
 const shares = ref([])
 const comments = ref([])
+const relations = ref([])
+const listFriend = ref([])
 
 onMounted(async () => {
   try {
@@ -42,6 +45,10 @@ onMounted(async () => {
     likes.value = res.data.likes
     comments.value = res.data.comments
     shares.value = res.data.shares
+
+    // Lấy quan hệ
+    relations.value = res.data.relations
+    listFriend.value = res.dât.listFriends
 
     window.Echo.channel(`profile.${props.owner.id}`)
       .listen('.post.create', (e) => {

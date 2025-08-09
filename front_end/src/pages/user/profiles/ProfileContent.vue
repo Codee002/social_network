@@ -4,7 +4,7 @@
     <div class="profile__post">
       <filter-component v-if="relationStatus == 'owner'" :user="user"></filter-component>
       <action-component v-if="relationStatus == 'owner'" :user="user"></action-component>
-      <div class="post__container" v-if="posts">
+      <div class="post__container" v-if="posts.length != 0">
         <post-component
           class="mb-3"
           v-for="post in posts"
@@ -16,7 +16,7 @@
           :shares="shares[post.id]"
           :renderAll="false"
           :owner="owner"
-          :relationStatus="relationStatus"
+          :relationStatus="relations[post.id]"
           v-show="acceptView(post.rule)"
           :ref="(el) => (postRefs[post.id] = el)"
           :listFriend="listFriend"
@@ -52,11 +52,13 @@ const props = defineProps({
   },
 })
 
-const posts = ref()
+const posts = ref([])
 const views = ref([])
 const likes = ref([])
 const shares = ref([])
 const comments = ref([])
+const listFriend = ref([])
+const relations = ref([])
 
 onMounted(async () => {
   try {
@@ -66,23 +68,26 @@ onMounted(async () => {
     likes.value = res.data.likes
     comments.value = res.data.comments
     shares.value = res.data.shares
+    listFriend.value = res.data.listFriends
+    relations.value = res.data.relations
 
-    window.Echo.channel(`profile.${props.user.id}`)
-      .listen('.post.create', (e) => {
-        console.log('BROADCAST NEW POST: ', e)
-        posts.value.unshift(e.post)
-        console.log(e.post)
-        likes.value[e.post.id] = e.likes.slice()
-        views.value[e.post.id] = e.views.slice()
-        comments.value[e.post.id] = e.comments.slice()
-        shares.value[e.post.id] = e.shares.slice()
-      })
-      .error((error) => {
-        console.error('Echo error:', error)
-      })
   } catch (error) {
     console.log('Không lấy được thông tin!', error)
   }
+
+  window.Echo.channel(`profile.${props.user.id}`)
+    .listen('.post.create', (e) => {
+      console.log('BROADCAST NEW POST: ', e)
+      posts.value.unshift(e.post)
+      console.log(e.post)
+      likes.value[e.post.id] = e.likes.slice()
+      views.value[e.post.id] = e.views.slice()
+      comments.value[e.post.id] = e.comments.slice()
+      shares.value[e.post.id] = e.shares.slice()
+    })
+    .error((error) => {
+      console.error('Echo error:', error)
+    })
 })
 
 // Xử lý quyền xem bài viết
@@ -103,8 +108,10 @@ const observer = new IntersectionObserver(
     entries.forEach((entry) => {
       const postId = entry.target.dataset.postId
       if (entry.isIntersecting) {
+        console.log('Dang xem', postId)
         // Nếu người dùng hiện tại chưa xem và chưa có timer thì bắt đầu đếm 5s
         if (!views.value[postId].includes(props.owner.id) && !viewTimers[postId]) {
+          console.log('Đủ dk cap nhat View', postId)
           viewTimers[postId] = setTimeout(() => {
             storeView(postId, props.owner.id, 1)
             delete viewTimers[postId]
@@ -120,7 +127,7 @@ const observer = new IntersectionObserver(
     })
   },
   {
-    threshold: 0.5,
+    threshold: 0,
   }
 )
 
@@ -128,7 +135,10 @@ const observer = new IntersectionObserver(
 watchEffect(() => {
   for (const postId in postRefs.value) {
     const el = postRefs.value[postId]?.$el || postRefs.value[postId]
+    console.log(postRefs.value)
+    console.log(el)
     if (el) {
+      console.log('DA XEM', el)
       el.dataset.postId = postId
       observer.observe(el)
     }

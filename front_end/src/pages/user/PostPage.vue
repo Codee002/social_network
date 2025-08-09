@@ -9,6 +9,8 @@
       :shares="shares"
       :post="post"
       :renderAll="true"
+      :listFriend="listFriend"
+      :relationStatus="relationStatus"
     ></post-component>
   </div>
 </template>
@@ -25,9 +27,12 @@ const views = ref([])
 const likes = ref([])
 const shares = ref([])
 const comments = ref([])
+const relationStatus = ref('')
+const listFriend = ref({})
 
 const props = defineProps({
   owner: {},
+  listFriend: {},
 })
 
 onMounted(async () => {
@@ -38,6 +43,8 @@ onMounted(async () => {
     likes.value = post.value.likes
     comments.value = post.value.comments
     shares.value = post.value.shares
+    relationStatus.value = post.value.relation
+    listFriend.value = res.data.listFriends
 
     // Cập nhật view
     let formData = new FormData()

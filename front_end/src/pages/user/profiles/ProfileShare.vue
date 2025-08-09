@@ -11,9 +11,10 @@
       :shares="shares[post.id]"
       :renderAll="false"
       :owner="owner"
-      :relationStatus="relationStatus"
       :acceptView="true"
       :ref="(el) => (postRefs[post.id] = el)"
+      :relationStatus="relations[post.id]"
+      :listFriend="listFriend"
     ></post-component>
   </div>
   <div v-else-if="loading == true" class="post__container">
@@ -45,9 +46,11 @@ const views = ref([])
 const likes = ref([])
 const shares = ref([])
 const comments = ref([])
+const relations = ref([])
+const listFriend = ref([])
 
-console.log("USER", props.user)
-console.log("OWNER", props.owner)
+console.log('USER', props.user)
+console.log('OWNER', props.owner)
 onMounted(async () => {
   try {
     let res = await axios.get(`/getSharePosts/${props.user.id}`)
@@ -56,6 +59,10 @@ onMounted(async () => {
     likes.value = res.data.likes
     comments.value = res.data.comments
     shares.value = res.data.shares
+
+    // Relation
+    relations.value = res.data.relations
+    listFriend.value = res.data.listFriends
     loading.value = false
 
     console.log(res.data)

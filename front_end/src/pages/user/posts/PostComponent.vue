@@ -1,5 +1,5 @@
 <template>
-  <div class="post-card" v-if="relationStatus">
+  <div class="post-card">
     <!-- Header Post -->
     <div class="post__header" ref="headerPostElementElement">
       <div class="post__author">
@@ -144,7 +144,7 @@
                   type="submit"
                   class="upload__btn btn upload__btn--primary"
                   :disabled="selectedUsers.length < 1"
-                  @click="sendMessage"
+                  @click="sendMessage(post.id)"
                   data-bs-dismiss="modal"
                 >
                   Gửi
@@ -346,7 +346,7 @@
                     class="comment__avt post__avt rounded-circle"
                     :src="
                       owner.profile.avatar
-                        ? $backendBaseUrl + post.user.profile.avatar
+                        ? $backendBaseUrl + owner.profile.avatar
                         : require('@/assets/images/avatar/default.jpg')
                     "
                     alt=""
@@ -499,10 +499,6 @@
       </div>
     </div>
   </div>
-
-  <div style="width: 100%; height: 100%" class="d-flex justify-content-center align-items-center" v-else>
-    <div class="spinner-border" style=""></div>
-  </div>
 </template>
 
 <script setup>
@@ -511,7 +507,7 @@ import { computed, defineProps, onMounted, ref } from 'vue'
 import router from '@/router'
 import { useToast } from 'vue-toastification'
 import NavComponent from '@/layouts/partials/NavComponent.vue'
-import auth from '@/utils/auth'
+// import auth from '@/utils/auth'
 
 const toast = useToast()
 const props = defineProps({
@@ -523,7 +519,7 @@ const props = defineProps({
   renderAll: {},
   owner: {},
   relationStatus: {
-    default: 'owner',
+    // default: 'owner',
   },
 
   listFriend: {
@@ -532,18 +528,23 @@ const props = defineProps({
 })
 
 // Quyền xem bài viết
-const relation = ref([])
+// const relation = ref([])
 const relationStatus = ref('')
 
 onMounted(async () => {
-  let res = await axios.get(`/getRelation/${props.owner.id}/${props.post.user_id}`)
-  relation.value = res.data.relation
-  relationStatus.value = auth.getRelationStatus(relation.value)
+  // let res = await axios.get(`/getRelation/${props.owner.id}/${props.post.user_id}`)
+  // console.log("GET RELATION")
+  // relation.value = res.data.relation
+  relationStatus.value = props.relationStatus
+  // console.log(relationStatus.value)
 })
 
 const rulePost = computed(() => {
   // Nếu bài viết bị khóa thì false
   if (props.post.status == 'disabled') return false
+
+  // Nếu chủ bài viết bị khóa thì false
+  if (props.post.user.status == "disabled") return false
 
   if (props.post.user_id == props.owner.id) return true
 
@@ -790,9 +791,9 @@ const friendSearch = computed(() =>
   )
 )
 
-async function sendMessage() {
+async function sendMessage(postId) {
   let formData = new FormData()
-  formData.append('content', window.location.href)
+  formData.append('content', window.location.origin + '/post/' + postId)
 
   // User trong cuộc trò chuyện
   if (selectedUsers.value.length != 0) {
@@ -971,9 +972,11 @@ async function removeComment(commentId) {
 
 .post__media .post__img {
   display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 0.5rem !important;
+  margin: 0 !important;
 }
 
 .rounded-circle {
@@ -1181,7 +1184,7 @@ async function removeComment(commentId) {
   outline: none;
 }
 
-.post-card .modal-body {
+#modal__newchat .modal-body, #modal__report .modal-body, #modal__remove__post .modal-body {
   padding: 0rem !important;
 }
 
