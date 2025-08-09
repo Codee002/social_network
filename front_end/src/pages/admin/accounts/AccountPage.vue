@@ -114,15 +114,19 @@ const pagination = ref()
 const currentPage = ref()
 const lastPage = ref()
 const getAccounts = async (page = 1) => {
-  const res = await axios.get(`/admin/account/getAccounts?page=${page}`)
-  console.log(res.data)
-  // Thông tin phân trang
-  pagination.value = res.data.pagination
-  currentPage.value = res.data.pagination.current_page
-  lastPage.value = res.data.pagination.last_page
+  try {
+    const res = await axios.get(`/admin/account/getAccounts?page=${page}`)
+    console.log(res.data)
+    // Thông tin phân trang
+    pagination.value = res.data.pagination
+    currentPage.value = res.data.pagination.current_page
+    lastPage.value = res.data.pagination.last_page
 
-  // Thông tin tài khoản
-  accounts.value = res.data.pagination.data
+    // Thông tin tài khoản
+    accounts.value = res.data.pagination.data
+  } catch (error) {
+    console.log('Có lỗi khi lấy dữ liệu tài khoản', error)
+  }
 }
 
 const goToPage = (page) => {

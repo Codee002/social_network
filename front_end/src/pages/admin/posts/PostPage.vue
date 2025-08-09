@@ -12,11 +12,11 @@
               <option value="disabled">Đang khóa</option>
             </select>
 
-            <select class="form-select me-1">
+            <!-- <select class="form-select me-1">
               <option value="" disabled="" selected="">Vi phạm</option>
               <option value="actived">Có</option>
               <option value="disabled">Không</option>
-            </select>
+            </select> -->
 
             <button type="submit" class="btn btn-primary text-white text-decoration-none m-1">Tìm</button>
           </div>
@@ -142,21 +142,25 @@ const currentPage = ref(1)
 const lastPage = ref(1)
 
 const getPosts = async (page = 1) => {
-  const res = await axios.get(`/admin/post/getPosts?page=${page}`)
-  console.log(res.data)
-  // Thông tin phân trang
-  pagination.value = res.data.pagination
-  currentPage.value = res.data.pagination.current_page
-  lastPage.value = res.data.pagination.last_page
+  try {
+    const res = await axios.get(`/admin/post/getPosts?page=${page}`)
+    console.log(res.data)
+    // Thông tin phân trang
+    pagination.value = res.data.pagination
+    currentPage.value = res.data.pagination.current_page
+    lastPage.value = res.data.pagination.last_page
 
-  // Thông tin bài viết
-  posts.value = res.data.pagination.data
-  console.log(posts.value)
-  views.value = res.data.views
-  likes.value = res.data.likes
-  comments.value = res.data.comments
-  shares.value = res.data.shares
-  reports.value = res.data.reports
+    // Thông tin bài viết
+    posts.value = res.data.pagination.data
+    console.log(posts.value)
+    views.value = res.data.views
+    likes.value = res.data.likes
+    comments.value = res.data.comments
+    shares.value = res.data.shares
+    reports.value = res.data.reports
+  } catch (error) {
+    console.log('Có lỗi khi lấy bài viết', error)
+  }
 }
 
 const goToPage = (page) => {

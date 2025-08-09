@@ -95,7 +95,7 @@
       </table>
 
       <div v-else class="mt-3">
-          <h5>Không tìm thấy bài viết</h5>
+        <h5>Không tìm thấy bài viết</h5>
       </div>
 
       <nav v-if="pagination">
@@ -137,15 +137,19 @@ const pagination = ref()
 const currentPage = ref()
 const lastPage = ref()
 const getReportPosts = async (page = 1) => {
-  const res = await axios.get(`/admin/post/getReportPosts?page=${page}`)
-  console.log(res.data)
-  // Thông tin phân trang
-  pagination.value = res.data.pagination
-  currentPage.value = res.data.pagination.current_page
-  lastPage.value = res.data.pagination.last_page
+  try {
+    const res = await axios.get(`/admin/post/getReportPosts?page=${page}`)
+    console.log(res.data)
+    // Thông tin phân trang
+    pagination.value = res.data.pagination
+    currentPage.value = res.data.pagination.current_page
+    lastPage.value = res.data.pagination.last_page
 
-  // Thông tin tài khoản
-  reports.value = res.data.pagination.data
+    // Thông tin tài khoản
+    reports.value = res.data.pagination.data
+  } catch (error) {
+    console.log('Có lỗi khi lấy bài viết', error)
+  }
 }
 
 const goToPage = (page) => {
