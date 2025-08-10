@@ -22,6 +22,9 @@ class StoryController extends Controller
 
         $stories = Story::with('user.profile')
             ->with("media")
+            ->whereHas('user', function ($query) {
+                $query->where('status', 'actived');
+            })
         // ->where('stories.rule', 'friend')
         // ->whereIn('stories.user_id', $friendIds)
         // ->orwhere('stories.user_id', $currentUserId)

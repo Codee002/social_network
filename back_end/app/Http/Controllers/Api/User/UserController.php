@@ -116,15 +116,16 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function getStories(Request $request)
+    public function getStories(Request $request, $userId)
     {
-        $user    = $request->user();
+        $user    = User::find($userId);
         $stories = $user->stories()
             ->with(['user.profile', 'media'])
             ->orderBy("created_at", 'desc')
             ->get();
 
-        $views = [];
+        $relation = Relation::getRelationStatus($request->user()->id, $userId);
+        $views    = [];
         foreach ($stories as $story) {
             $views[$story->id] = $story->watches()->pluck("user_id")->all();
         }
@@ -134,6 +135,7 @@ class UserController extends Controller
             'message' => "Lấy tin thành công",
             "stories" => $stories,
             "views"   => $views,
+            "relation"   => $relation,
         ], 200);
     }
 
@@ -403,11 +405,12 @@ class UserController extends Controller
     {
         $user  = $request->user();
         $posts = [];
-        foreach ($user->likes as $like) {
+        $likes = $user->likes()->orderBy("created_at", 'desc')->get();
+        foreach ($likes as $like) {
             $posts[] = $like->post()
                 ->withTrashed()
                 ->with("medias")
-                ->orderBy("created_at", 'desc')
+            // ->orderBy("created_at", 'desc')
                 ->with('user.profile')->first();
         }
 
@@ -448,16 +451,21 @@ class UserController extends Controller
         $user = User::find($userId);
         // $user = $request->user();
 
-        $posts = [];
-        foreach ($user->shares as $share) {
+        $posts  = [];
+        $shares = $user->shares()->orderBy("created_at", 'desc')->get();
+
+        foreach ($shares as $share) {
             // dd($share);
-            $posts[] = $share->post()->withTrashed()->with("medias")->orderBy("created_at", 'desc')
+            $posts[] = $share->post()->withTrashed()
+                ->with("medias")
+            // ->orderBy("created_at", 'desc')
                 ->with('user.profile')->first();
         }
 
-        $views  = [];
-        $likes  = [];
-        $shares = [];
+        $views    = [];
+        $likes    = [];
+        $shares   = [];
+        $comments = [];
 
         // Lấy thêm quan hệ và danh sách bạn bè
         $relations   = [];
