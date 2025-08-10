@@ -1,5 +1,5 @@
 <template>
-  <div class="post__container" v-if="posts">
+  <div class="post__container" v-if="posts.length != 0 && loading == false">
     <post-component
       class="mb-3"
       v-for="post in posts"
@@ -17,6 +17,16 @@
       :ref="(el) => (postRefs[post.id] = el)"
     ></post-component>
   </div>
+  <div v-else-if="loading == true" class="post__container">
+    <div class="d-flex justify-content-center flex-column align-items-center" style="margin: auto">
+      <div class="spinner-border"></div>
+    </div>
+  </div>
+  <div v-else-if="loading == false && posts.length == 0" class="no-post">
+    <div class="d-flex justify-content-center flex-column align-items-center" style="margin: auto">
+      <p>Bạn chưa thích bài viết nào</p>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -28,7 +38,8 @@ const props = defineProps({
   owner: {},
 })
 
-const posts = ref()
+const loading = ref(true)
+const posts = ref([])
 const views = ref([])
 const likes = ref([])
 const shares = ref([])
@@ -49,6 +60,7 @@ onMounted(async () => {
     // Lấy quan hệ
     relations.value = res.data.relations
     listFriend.value = res.dât.listFriends
+    loading.value = false
 
     window.Echo.channel(`profile.${props.owner.id}`)
       .listen('.post.create', (e) => {
@@ -65,6 +77,7 @@ onMounted(async () => {
       })
   } catch (error) {
     console.log('Không lấy được thông tin!', error)
+    loading.value = false
   }
 })
 
@@ -197,5 +210,17 @@ async function storeView(postId, userId, score) {
   gap: 1rem;
   padding: 1rem;
   margin: auto;
+}
+
+.no-post {
+  background-color: var(--main-extra-bg);
+  border-radius: 0.75rem;
+  box-shadow: rgba(0, 0, 0, 0.1) 0.1rem 0.1rem 0.1rem;
+  height: 10rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40rem;
+  margin: 2rem auto;
 }
 </style>

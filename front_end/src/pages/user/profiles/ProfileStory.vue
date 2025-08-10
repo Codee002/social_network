@@ -1,8 +1,8 @@
 <template>
-  <div class="profile__story__container col-12 col-sm-8 offset-sm-2">
+  <div class="profile__story__container col-12 col-sm-8 offset-sm-2" v-if="ruleView == true">
     <div class="main-mid__story">
       <div class="story-container" ref="storyContainer">
-        <div class="story-card">
+        <div class="story-card" v-if="owner.id == user.id">
           <img
             class="story__img"
             :src="
@@ -108,27 +108,43 @@
       </div>
     </div>
   </div>
+
+  <div v-else class="no-post">
+    <div class="d-flex justify-content-center flex-column align-items-center" style="margin: auto">
+      <p>Bạn không có quyền xem thông tin này</p>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import axios from 'axios'
-import { defineProps, onMounted, ref } from 'vue'
+import { computed, defineProps, onMounted, ref } from 'vue'
 import { useToast } from 'vue-toastification'
-defineProps({
+const props = defineProps({
   owner: {},
+  user: {},
 })
 const storyContainer = ref()
 const stories = ref()
 const views = ref()
+const relation = ref('')
 
 onMounted(async () => {
   try {
-    let res = await axios.get(`/getStories`)
+    let res = await axios.get(`/getStories/${props.user.id}`)
     stories.value = res.data.stories
     views.value = res.data.views
+    relation.value = res.data.relation
   } catch (error) {
     console.log('Không lấy được thông tin!', error)
   }
+})
+
+// Quyền xem tin
+const ruleView = computed(() => {
+  if (relation.value == 'stranger' || relation.value == 'friend_pending') return false
+
+  return true
 })
 
 // ---------------------Đăng Story---------------------
@@ -329,5 +345,17 @@ async function createStory() {
 img.cover {
   border-radius: 1rem;
   width: 100%;
+}
+
+.no-post {
+  background-color: var(--main-extra-bg);
+  border-radius: 0.75rem;
+  box-shadow: rgba(0, 0, 0, 0.1) 0.1rem 0.1rem 0.1rem;
+  height: 10rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40rem;
+  margin: 2rem auto;
 }
 </style>

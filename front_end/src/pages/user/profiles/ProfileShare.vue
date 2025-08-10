@@ -1,5 +1,5 @@
 <template>
-  <div class="post__container" v-if="posts && loading == false">
+  <div class="post__container" v-if="posts.length != 0 && loading == false">
     <post-component
       class="mb-3"
       v-for="post in posts"
@@ -23,9 +23,9 @@
     </div>
   </div>
 
-  <div v-else-if="loading.value == false && !posts">
+  <div v-else-if="loading == false && posts.length == 0" class="no-post">
     <div class="d-flex justify-content-center flex-column align-items-center" style="margin: auto">
-      <p>{{ user.profile.name }} chưa chia sẻ bài viết nào</p>
+      <p>{{ user.id == owner.id ? "Bạn" : user.profile.name }} chưa chia sẻ bài viết nào</p>
     </div>
   </div>
 </template>
@@ -41,7 +41,7 @@ const props = defineProps({
 })
 
 const loading = ref(true)
-const posts = ref()
+const posts = ref([])
 const views = ref([])
 const likes = ref([])
 const shares = ref([])
@@ -49,8 +49,6 @@ const comments = ref([])
 const relations = ref([])
 const listFriend = ref([])
 
-console.log('USER', props.user)
-console.log('OWNER', props.owner)
 onMounted(async () => {
   try {
     let res = await axios.get(`/getSharePosts/${props.user.id}`)
@@ -193,5 +191,17 @@ async function storeView(postId, userId, score) {
   gap: 1rem;
   padding: 1rem;
   margin: auto;
+}
+
+.no-post {
+  background-color: var(--main-extra-bg);
+  border-radius: 0.75rem;
+  box-shadow: rgba(0, 0, 0, 0.1) 0.1rem 0.1rem 0.1rem;
+  height: 10rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40rem;
+  margin: 2rem auto;
 }
 </style>

@@ -25,31 +25,36 @@
 import { onMounted, ref, defineProps } from 'vue'
 import FriendInvited from '@/pages/user/friends/FriendInvited.vue'
 import FriendList from '@/pages/user/friends/FriendList.vue'
-import auth from '@/utils/auth'
 import axios from 'axios'
 
-defineProps({
+const props = defineProps({
   relationStatus: {
     default: 'owner',
+  },
+  owner: {},
+  user: {
+    default: null,
   },
 })
 
 let mode = ref('friendList')
-const owner = ref()
+// const owner = ref()
 const search = ref()
 const listFriend = ref()
 const listInvited = ref([])
+const user = ref({})
 
 onMounted(async () => {
   try {
-    owner.value = await auth.getOwner()
-    let res = await axios.get(`/getFriends/${owner.value.id}`)
+    user.value = props.user ?? props.owner
+    // owner.value = await auth.getOwner()
+    let res = await axios.get(`/getFriends/${user.value.id}`)
     listFriend.value = res.data.friendList
 
-    res = await axios.get(`/getInvited/${owner.value.id}`)
+    res = await axios.get(`/getInvited/${props.owner.id}`)
     listInvited.value = res.data.listInvited
 
-    window.Echo.private(`user.${owner.value.id}`)
+    window.Echo.private(`user.${props.owner.id}`)
       .listen('.receive.relation', (e) => {
         console.log('Broadcast: receive.relation', e.friendList)
         listInvited.value = e.listInvited
@@ -59,7 +64,7 @@ onMounted(async () => {
         console.error('Echo error:', error)
       })
 
-    window.Echo.private(`user.${owner.value.id}`)
+    window.Echo.private(`user.${props.owner.id}`)
       .listen('.send.relation', (e) => {
         console.log('Broadcast: send.relation', e.friendList)
         listInvited.value = e.listInvited
@@ -70,7 +75,7 @@ onMounted(async () => {
       })
   } catch (error) {
     console.log('Không lấy được thông tin!', error)
-    owner.value = null
+    // owner.value = null
   }
 })
 

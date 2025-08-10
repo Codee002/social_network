@@ -25,8 +25,13 @@
       @changeMode="changeMode"
       :listFriend="listFriend"
     ></profile-content>
-    <friend-page :relationStatus="relationStatus" :listFriend="listFriend" v-if="mode == 'friend'"></friend-page>
-    <profile-story v-if="mode == 'story'" :owner="owner"></profile-story>
+    <friend-page
+      :relationStatus="relationStatus"
+      :owner="owner"
+      :user="user"
+      v-if="mode == 'friend'"
+    ></friend-page>
+    <profile-story v-if="mode == 'story'" :owner="owner" :user="user"></profile-story>
     <interview-component
       :showListFriend="false"
       @changeMode="changeMode"
