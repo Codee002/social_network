@@ -248,6 +248,19 @@ class ConversationController extends Controller
             'type'            => $request['type'],
             'conversation_id' => $request['conversation_id'],
         ]);
+
+        $message->conversation->update([
+            'updated_at' => now(),
+        ]);
+
+        $usersIdArray = $message->conversation->users()->pluck('user_id')->all();
+        broadcast(new ReceiveMessageRequest($message->load("medias"), $request->user()->id));
+
+        foreach ($usersIdArray as $userId) {
+            if ($userId != $request->user()->id) {
+                broadcast(new ReceiveMessageRequest($message->load("medias"), $userId));
+            }
+        }
         try {
             // Thông tin agora Channel
             $ids     = Str::random(10);

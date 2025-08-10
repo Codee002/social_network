@@ -52,7 +52,10 @@ class RemoveMessageRequest implements ShouldBroadcastNow
 
         foreach ($conversations as $conversation) {
             $conversation['user']    = $conversation->users()->where("user_id", '!=', $owner->id)->first()->profile;
-            $conversation['message'] = $conversation->messages()->orderBy("id", 'desc')->first();
+            $conversation['message'] = $conversation->messages()
+                ->withTrashed()
+                ->orderBy("id", 'desc')
+                ->first();
         }
 
         $this->message['userName'] = $this->message->user->profile->name;
