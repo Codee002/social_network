@@ -3,7 +3,6 @@
 use App\Http\Controllers\Api\Admin\AccountController;
 use App\Http\Controllers\Api\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\User\ConversationController;
 use App\Http\Controllers\Api\User\PostController;
 use App\Http\Controllers\Api\User\RelationController;
@@ -14,7 +13,6 @@ use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
-Route::apiResource("/test", TestController::class);
 
 // Auth
 Route::prefix("/auth")->name("auth.")->group(function () {
@@ -41,7 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/getRelation/{owner_id}/{user_id}', [UserController::class, 'getRelation']);
     // Route::get('/getFriends/{id}', [UserController::class, 'getFriends']);
     Route::get('/getPosts/{id}', [UserController::class, 'getPosts']);
-    Route::get('/getStories', [UserController::class, 'getStories']);
+    Route::get('/getStories/{id}', [UserController::class, 'getStories']);
     Route::get('/getFriends/{id}', [UserController::class, 'getFriends']);
     Route::get('/getInvited/{id}', [UserController::class, 'getInvited']);
     Route::get('/getNotifications/{id}', [UserController::class, 'getNotifications']);
