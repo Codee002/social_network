@@ -157,6 +157,7 @@ async function onSubmit() {
         })
       }
     } catch (error) {
+      console.log("Có lỗi khi đăng nhập", error)
       if (error.response) {
         loading.value = false
         const resData = error.response.data
